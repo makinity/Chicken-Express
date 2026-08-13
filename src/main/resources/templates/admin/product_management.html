@@ -7,110 +7,120 @@
 
 <th:block th:fragment="content">
 
-    <!-- Toolbar: search + add button -->
-    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
-        <div class="input-group" style="max-width: 340px;">
+    <!-- ── Toolbar ─────────────────────────────────────────────────────── -->
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-2 flex-wrap">
+        <div class="input-group flex-nowrap" style="max-width: 340px; width: 100%;">
             <span class="input-group-text bg-white border-end-0">
                 <i class="bi bi-search text-muted"></i>
             </span>
             <input type="text" id="productSearch" class="form-control border-start-0 ps-0"
-                   placeholder="Search by name or category…"
-                   autocomplete="off"/>
+                   placeholder="Search by name or category…" autocomplete="off"/>
             <button class="btn btn-outline-secondary" type="button" id="clearSearch"
                     style="display:none;" title="Clear">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
-        <button class="btn ce-btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
-            <i class="bi bi-plus-lg"></i> Add Product
+        <button class="btn ce-btn-primary flex-shrink-0" data-bs-toggle="modal" data-bs-target="#addProductModal">
+            <i class="bi bi-plus-lg"></i>
+            <span class="d-none d-sm-inline"> Add Product</span>
+            <span class="d-inline d-sm-none"> Add</span>
         </button>
     </div>
 
-    <!-- Products table -->
-    <div class="card border-0 shadow-sm">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Image</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th class="text-center">Available</th>
-                        <th class="text-center">Popular</th>
-                        <th class="text-center">Spicy</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="productTableBody">
-                    <tr th:each="product : ${products}"
-                        data-product-row
-                        th:data-name="${product.name}"
-                        th:data-category="${product.category.name}">
-                        <td>
-                            <img th:if="${product.imageUrl != null}"
-                                 th:src="${product.imageUrl}"
-                                 class="rounded" style="width:48px;height:48px;object-fit:cover;"
-                                 alt="Product image"/>
-                            <i th:unless="${product.imageUrl != null}"
-                               class="bi bi-image text-muted fs-4"></i>
-                        </td>
-                        <td class="fw-medium" th:text="${product.name}">Name</td>
-                        <td class="text-muted small" th:text="${product.category.name}">Category</td>
-                        <td class="fw-bold ce-color-primary"
-                            th:text="'₱' + ${#numbers.formatDecimal(product.price,1,2)}">₱0.00</td>
-                        <td class="text-center">
-                            <span th:if="${product.available}" class="badge bg-success">Yes</span>
-                            <span th:unless="${product.available}" class="badge bg-secondary">No</span>
-                        </td>
-                        <td class="text-center">
-                            <i th:if="${product.popular}" class="bi bi-star-fill ce-color-accent"></i>
-                            <span th:unless="${product.popular}" class="text-muted">—</span>
-                        </td>
-                        <td class="text-center">
-                            <span th:if="${product.spicy}">🌶</span>
-                            <span th:unless="${product.spicy}" class="text-muted">—</span>
-                        </td>
-                        <td class="text-end">
-                            <!-- Edit — opens modal populated via JS -->
-                            <button class="btn btn-sm btn-outline-primary me-1"
-                                    th:data-id="${product.id}"
-                                    th:data-name="${product.name}"
-                                    th:data-description="${product.description}"
-                                    th:data-price="${product.price}"
-                                    th:data-category-id="${product.category.id}"
-                                    th:data-available="${product.available}"
-                                    th:data-popular="${product.popular}"
-                                    th:data-spicy="${product.spicy}"
-                                    th:data-image-url="${product.imageUrl}"
-                                    onclick="openEditProductModal(this)">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <!-- Delete -->
-                            <button class="btn btn-sm btn-outline-danger"
-                                    th:data-id="${product.id}"
-                                    th:data-name="${product.name}"
-                                    onclick="openDeleteProductModal(this)">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr th:if="${products.isEmpty()}">
-                        <td colspan="8" class="text-center text-muted py-4">
-                            No products yet.
-                            <a href="#" data-bs-toggle="modal" data-bs-target="#addProductModal"
-                               class="ce-link">Add the first one.</a>
-                        </td>
-                    </tr>
-                    <!-- shown by JS when search has no matches -->
-                    <tr id="noSearchResults" style="display:none;">
-                        <td colspan="8" class="text-center text-muted py-4">
-                            <i class="bi bi-search me-1"></i> No products match your search.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+    <!-- ── Empty state ─────────────────────────────────────────────────── -->
+    <div th:if="${products.isEmpty()}" class="text-center text-muted py-5">
+        <i class="bi bi-box-seam display-4"></i>
+        <p class="mt-3">No products yet.
+            <a href="#" data-bs-toggle="modal" data-bs-target="#addProductModal" class="ce-link">
+                Add the first one.
+            </a>
+        </p>
+    </div>
+
+    <!-- ── Product card grid ───────────────────────────────────────────── -->
+    <div id="productGrid" class="row g-3" th:unless="${products.isEmpty()}">
+        <div class="col-12 col-sm-6 col-xl-4 product-card-col"
+             th:each="product : ${products}"
+             th:data-name="${product.name}"
+             th:data-category="${product.category.name}">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="d-flex">
+                    <!-- Product image -->
+                    <div class="flex-shrink-0" style="width:90px;height:90px;">
+                        <img th:if="${product.imageUrl != null}"
+                             th:src="${product.imageUrl}"
+                             alt="Product"
+                             style="width:90px;height:90px;object-fit:cover;border-radius:.375rem 0 0 .375rem;"/>
+                        <div th:unless="${product.imageUrl != null}"
+                             class="d-flex align-items-center justify-content-center bg-light h-100"
+                             style="border-radius:.375rem 0 0 .375rem;">
+                            <i class="bi bi-image text-muted fs-3"></i>
+                        </div>
+                    </div>
+
+                    <!-- Card body -->
+                    <div class="card-body py-2 px-3 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="fw-semibold lh-sm" th:text="${product.name}">Name</div>
+                            <div class="text-muted small" th:text="${product.category.name}">Category</div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between mt-2 flex-wrap gap-1">
+                            <span class="fw-bold ce-color-primary"
+                                  th:text="'₱' + ${#numbers.formatDecimal(product.price,1,2)}">₱0.00</span>
+                            <div class="d-flex gap-1 align-items-center">
+                                <!-- Available badge -->
+                                <span th:if="${product.available}" class="badge bg-success" style="font-size:.65rem;">Available</span>
+                                <span th:unless="${product.available}" class="badge bg-secondary" style="font-size:.65rem;">Unavailable</span>
+                                <!-- Popular -->
+                                <i th:if="${product.popular}" class="bi bi-star-fill ce-color-accent" title="Popular"></i>
+                                <!-- Spicy -->
+                                <span th:if="${product.spicy}" title="Spicy">🌶</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="d-flex flex-column justify-content-center gap-2 pe-2">
+                        <button class="btn btn-sm btn-outline-primary"
+                                th:data-id="${product.id}"
+                                th:data-name="${product.name}"
+                                th:data-description="${product.description}"
+                                th:data-price="${product.price}"
+                                th:data-category-id="${product.category.id}"
+                                th:data-available="${product.available}"
+                                th:data-popular="${product.popular}"
+                                th:data-spicy="${product.spicy}"
+                                th:data-image-url="${product.imageUrl}"
+                                onclick="openEditProductModal(this)"
+                                title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger"
+                                th:data-id="${product.id}"
+                                th:data-name="${product.name}"
+                                onclick="openDeleteProductModal(this)"
+                                title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
+
+    <!-- No search results -->
+    <div id="noSearchResults" class="text-center text-muted py-5" style="display:none;">
+        <i class="bi bi-search display-6"></i>
+        <p class="mt-2">No products match your search.</p>
+    </div>
+
+    <!-- ── Pagination ───────────────────────────────────────────────────── -->
+    <div id="paginationWrap" class="d-flex align-items-center justify-content-between mt-4 flex-wrap gap-2"
+         th:unless="${products.isEmpty()}">
+        <div class="text-muted small" id="pageInfo"></div>
+        <nav aria-label="Products pagination">
+            <ul class="pagination ce-pagination mb-0" id="pagination"></ul>
+        </nav>
     </div>
 
 
@@ -120,57 +130,43 @@
     <div class="modal fade" id="addProductModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <form th:action="@{/admin/products/new}" method="post"
-                      enctype="multipart/form-data">
+                <form th:action="@{/admin/products/new}" method="post" enctype="multipart/form-data">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-
                     <div class="modal-header">
-                        <h5 class="modal-title fw-bold">
-                            <i class="bi bi-plus-circle"></i> Add Product
-                        </h5>
+                        <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle"></i> Add Product</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-
                     <div class="modal-body">
                         <div class="row g-3">
-
                             <div class="col-12">
                                 <label class="form-label fw-medium">Product Name <span class="text-danger">*</span></label>
                                 <input type="text" name="name" class="form-control"
-                                       placeholder="e.g. Classic Fried Chicken (2 pcs)"
-                                       required maxlength="200"/>
+                                       placeholder="e.g. Classic Fried Chicken (2 pcs)" required maxlength="200"/>
                             </div>
-
                             <div class="col-12">
                                 <label class="form-label fw-medium">Description</label>
                                 <textarea name="description" class="form-control" rows="2"
                                           placeholder="Short description..."></textarea>
                             </div>
-
                             <div class="col-md-6">
                                 <label class="form-label fw-medium">Price (₱) <span class="text-danger">*</span></label>
                                 <input type="number" name="price" class="form-control"
                                        step="0.01" min="1" placeholder="0.00" required/>
                             </div>
-
                             <div class="col-md-6">
                                 <label class="form-label fw-medium">Category <span class="text-danger">*</span></label>
                                 <select name="categoryId" class="form-select" required>
                                     <option value="">Select category...</option>
                                     <option th:each="cat : ${categories}"
-                                            th:value="${cat.id}"
-                                            th:text="${cat.name}">Category</option>
+                                            th:value="${cat.id}" th:text="${cat.name}">Category</option>
                                 </select>
                             </div>
-
                             <div class="col-12">
                                 <label class="form-label fw-medium">
-                                    Product Image
-                                    <span class="text-muted fw-normal small">(JPEG/PNG, max 5 MB)</span>
+                                    Product Image <span class="text-muted fw-normal small">(JPEG/PNG, max 5 MB)</span>
                                 </label>
                                 <input type="file" name="imageFile" class="form-control" accept="image/*"/>
                             </div>
-
                             <div class="col-12">
                                 <div class="d-flex flex-wrap gap-4">
                                     <div class="form-check">
@@ -192,16 +188,11 @@
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
-
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary"
-                                data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn ce-btn-primary">
-                            <i class="bi bi-save"></i> Save Product
-                        </button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn ce-btn-primary"><i class="bi bi-save"></i> Save Product</button>
                     </div>
                 </form>
             </div>
@@ -217,50 +208,37 @@
             <div class="modal-content">
                 <form id="editProductForm" method="post" enctype="multipart/form-data">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-
                     <div class="modal-header">
-                        <h5 class="modal-title fw-bold">
-                            <i class="bi bi-pencil-square"></i> Edit Product
-                        </h5>
+                        <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square"></i> Edit Product</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-
                     <div class="modal-body">
                         <div class="row g-3">
-
                             <div class="col-12">
                                 <label class="form-label fw-medium">Product Name <span class="text-danger">*</span></label>
                                 <input type="text" id="editProductName" name="name"
                                        class="form-control" required maxlength="200"/>
                             </div>
-
                             <div class="col-12">
                                 <label class="form-label fw-medium">Description</label>
-                                <textarea id="editProductDesc" name="description"
-                                          class="form-control" rows="2"></textarea>
+                                <textarea id="editProductDesc" name="description" class="form-control" rows="2"></textarea>
                             </div>
-
                             <div class="col-md-6">
                                 <label class="form-label fw-medium">Price (₱) <span class="text-danger">*</span></label>
                                 <input type="number" id="editProductPrice" name="price"
                                        class="form-control" step="0.01" min="1" required/>
                             </div>
-
                             <div class="col-md-6">
                                 <label class="form-label fw-medium">Category <span class="text-danger">*</span></label>
-                                <select id="editProductCategory" name="categoryId"
-                                        class="form-select" required>
+                                <select id="editProductCategory" name="categoryId" class="form-select" required>
                                     <option value="">Select category...</option>
                                     <option th:each="cat : ${categories}"
-                                            th:value="${cat.id}"
-                                            th:text="${cat.name}">Category</option>
+                                            th:value="${cat.id}" th:text="${cat.name}">Category</option>
                                 </select>
                             </div>
-
                             <div class="col-12">
                                 <label class="form-label fw-medium">
-                                    Replace Image
-                                    <span class="text-muted fw-normal small">(leave blank to keep current)</span>
+                                    Replace Image <span class="text-muted fw-normal small">(leave blank to keep current)</span>
                                 </label>
                                 <div id="editCurrentImagePreview" class="mb-2 d-none">
                                     <img id="editCurrentImage" src="" class="rounded"
@@ -269,7 +247,6 @@
                                 </div>
                                 <input type="file" name="imageFile" class="form-control" accept="image/*"/>
                             </div>
-
                             <div class="col-12">
                                 <div class="d-flex flex-wrap gap-4">
                                     <div class="form-check">
@@ -291,16 +268,11 @@
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
-
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary"
-                                data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn ce-btn-primary">
-                            <i class="bi bi-save"></i> Update Product
-                        </button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn ce-btn-primary"><i class="bi bi-save"></i> Update Product</button>
                     </div>
                 </form>
             </div>
@@ -316,19 +288,15 @@
             <div class="modal-content">
                 <form id="deleteProductForm" method="post">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-
                     <div class="modal-header border-0 pb-0">
                         <h5 class="modal-title fw-bold text-danger">
                             <i class="bi bi-trash3"></i> Delete Product
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-
                     <div class="modal-body pt-2">
-                        <p class="mb-0">Delete <strong id="deleteProductName"></strong>?
-                            This cannot be undone.</p>
+                        <p class="mb-0">Delete <strong id="deleteProductName"></strong>? This cannot be undone.</p>
                     </div>
-
                     <div class="modal-footer border-0 pt-0">
                         <button type="button" class="btn btn-outline-secondary btn-sm"
                                 data-bs-dismiss="modal">Cancel</button>
@@ -343,89 +311,178 @@
 
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!--  Search filter script                                               -->
+    <!--  Scripts: search + pagination + modal helpers                       -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <script>
-        (function () {
-            const searchInput  = document.getElementById('productSearch');
-            const clearBtn     = document.getElementById('clearSearch');
-            const tbody        = document.getElementById('productTableBody');
-            const noResults    = document.getElementById('noSearchResults');
+    (function () {
+        const PAGE_SIZE = 15;
+        let currentPage = 1;
+        let filteredCols = [];
 
-            searchInput.addEventListener('input', filterTable);
-            clearBtn.addEventListener('click', function () {
-                searchInput.value = '';
-                filterTable();
-                searchInput.focus();
+        const searchInput = document.getElementById('productSearch');
+        const clearBtn    = document.getElementById('clearSearch');
+        const grid        = document.getElementById('productGrid');
+        const noResults   = document.getElementById('noSearchResults');
+        const pageInfo    = document.getElementById('pageInfo');
+        const pagination  = document.getElementById('pagination');
+
+        if (!grid) return; // empty state — nothing to paginate
+
+        const allCols = Array.from(grid.querySelectorAll('.product-card-col'));
+
+        searchInput.addEventListener('input', function () {
+            currentPage = 1;
+            applyFilter();
+        });
+
+        clearBtn.addEventListener('click', function () {
+            searchInput.value = '';
+            currentPage = 1;
+            applyFilter();
+            searchInput.focus();
+        });
+
+        function applyFilter() {
+            const query = searchInput.value.trim().toLowerCase();
+            clearBtn.style.display = query ? 'inline-block' : 'none';
+
+            filteredCols = allCols.filter(function (col) {
+                const name     = (col.dataset.name     || '').toLowerCase();
+                const category = (col.dataset.category || '').toLowerCase();
+                return !query || name.includes(query) || category.includes(query);
             });
 
-            function filterTable() {
-                const query = searchInput.value.trim().toLowerCase();
-                clearBtn.style.display = query ? 'inline-block' : 'none';
+            noResults.style.display = (query && filteredCols.length === 0) ? '' : 'none';
+            renderPage();
+        }
 
-                // All data rows (skip the static empty/no-results rows)
-                const rows = tbody.querySelectorAll('tr[data-product-row]');
-                let visibleCount = 0;
+        function renderPage() {
+            const total      = filteredCols.length;
+            const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+            currentPage      = Math.min(currentPage, totalPages);
 
-                rows.forEach(function (row) {
-                    const name     = (row.dataset.name     || '').toLowerCase();
-                    const category = (row.dataset.category || '').toLowerCase();
-                    const matches  = !query || name.includes(query) || category.includes(query);
-                    row.style.display = matches ? '' : 'none';
-                    if (matches) visibleCount++;
-                });
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const end   = start + PAGE_SIZE;
 
-                noResults.style.display = (query && visibleCount === 0) ? '' : 'none';
-            }
-        })();
-    </script>
+            // Show/hide cards
+            allCols.forEach(col => col.style.display = 'none');
+            filteredCols.forEach(function (col, i) {
+                col.style.display = (i >= start && i < end) ? '' : 'none';
+            });
 
-</th:block>
-        function openEditProductModal(btn) {
-            const id         = btn.dataset.id;
-            const name       = btn.dataset.name;
-            const desc       = btn.dataset.description || '';
-            const price      = btn.dataset.price;
-            const categoryId = btn.dataset.categoryId;
-            const available  = btn.dataset.available === 'true';
-            const popular    = btn.dataset.popular === 'true';
-            const spicy      = btn.dataset.spicy === 'true';
-            const imageUrl   = btn.dataset.imageUrl;
-
-            document.getElementById('editProductForm').action = '/admin/products/' + id + '/edit';
-            document.getElementById('editProductName').value = name;
-            document.getElementById('editProductDesc').value = desc;
-            document.getElementById('editProductPrice').value = price;
-            document.getElementById('editProductAvailable').checked = available;
-            document.getElementById('editProductPopular').checked = popular;
-            document.getElementById('editProductSpicy').checked = spicy;
-
-            // Set category select
-            const sel = document.getElementById('editProductCategory');
-            for (let opt of sel.options) {
-                opt.selected = opt.value === categoryId;
-            }
-
-            // Show current image preview
-            const preview = document.getElementById('editCurrentImagePreview');
-            const img     = document.getElementById('editCurrentImage');
-            if (imageUrl && imageUrl !== 'null') {
-                img.src = imageUrl;
-                preview.classList.remove('d-none');
+            // Page info text
+            if (total > 0) {
+                const from = start + 1;
+                const to   = Math.min(end, total);
+                pageInfo.textContent = 'Showing ' + from + '–' + to + ' of ' + total + ' products';
             } else {
-                preview.classList.add('d-none');
+                pageInfo.textContent = '';
             }
 
-            new bootstrap.Modal(document.getElementById('editProductModal')).show();
+            // Pagination buttons
+            pagination.innerHTML = '';
+            if (totalPages <= 1) return;
+
+            // Prev
+            const prevLi = document.createElement('li');
+            prevLi.className = 'page-item' + (currentPage === 1 ? ' disabled' : '');
+            prevLi.innerHTML = '<a class="page-link" href="#">&laquo;</a>';
+            prevLi.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (currentPage > 1) { currentPage--; renderPage(); }
+            });
+            pagination.appendChild(prevLi);
+
+            // Page numbers (show max 5 around current)
+            const range = pageRange(currentPage, totalPages);
+            range.forEach(function (p) {
+                const li = document.createElement('li');
+                if (p === '...') {
+                    li.className = 'page-item disabled';
+                    li.innerHTML = '<span class="page-link">…</span>';
+                } else {
+                    li.className = 'page-item' + (p === currentPage ? ' active' : '');
+                    li.innerHTML = '<a class="page-link" href="#">' + p + '</a>';
+                    li.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        currentPage = p;
+                        renderPage();
+                    });
+                }
+                pagination.appendChild(li);
+            });
+
+            // Next
+            const nextLi = document.createElement('li');
+            nextLi.className = 'page-item' + (currentPage === totalPages ? ' disabled' : '');
+            nextLi.innerHTML = '<a class="page-link" href="#">&raquo;</a>';
+            nextLi.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (currentPage < totalPages) { currentPage++; renderPage(); }
+            });
+            pagination.appendChild(nextLi);
         }
 
-        function openDeleteProductModal(btn) {
-            const id   = btn.dataset.id;
-            const name = btn.dataset.name;
-            document.getElementById('deleteProductForm').action = '/admin/products/' + id + '/delete';
-            document.getElementById('deleteProductName').textContent = '"' + name + '"';
-            new bootstrap.Modal(document.getElementById('deleteProductModal')).show();
+        function pageRange(current, total) {
+            if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+            const pages = [];
+            pages.push(1);
+            if (current > 3) pages.push('...');
+            for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+                pages.push(i);
+            }
+            if (current < total - 2) pages.push('...');
+            pages.push(total);
+            return pages;
         }
+
+        // Initial render
+        filteredCols = allCols.slice();
+        renderPage();
+    })();
+
+    // ── Modal helpers ──────────────────────────────────────────────────────
+    function openEditProductModal(btn) {
+        const id         = btn.dataset.id;
+        const name       = btn.dataset.name;
+        const desc       = btn.dataset.description || '';
+        const price      = btn.dataset.price;
+        const categoryId = btn.dataset.categoryId;
+        const available  = btn.dataset.available === 'true';
+        const popular    = btn.dataset.popular === 'true';
+        const spicy      = btn.dataset.spicy === 'true';
+        const imageUrl   = btn.dataset.imageUrl;
+
+        document.getElementById('editProductForm').action = '/admin/products/' + id + '/edit';
+        document.getElementById('editProductName').value  = name;
+        document.getElementById('editProductDesc').value  = desc;
+        document.getElementById('editProductPrice').value = price;
+        document.getElementById('editProductAvailable').checked = available;
+        document.getElementById('editProductPopular').checked   = popular;
+        document.getElementById('editProductSpicy').checked     = spicy;
+
+        const sel = document.getElementById('editProductCategory');
+        for (let opt of sel.options) opt.selected = opt.value === categoryId;
+
+        const preview = document.getElementById('editCurrentImagePreview');
+        const img     = document.getElementById('editCurrentImage');
+        if (imageUrl && imageUrl !== 'null') {
+            img.src = imageUrl;
+            preview.classList.remove('d-none');
+        } else {
+            preview.classList.add('d-none');
+        }
+
+        new bootstrap.Modal(document.getElementById('editProductModal')).show();
+    }
+
+    function openDeleteProductModal(btn) {
+        const id   = btn.dataset.id;
+        const name = btn.dataset.name;
+        document.getElementById('deleteProductForm').action = '/admin/products/' + id + '/delete';
+        document.getElementById('deleteProductName').textContent = '"' + name + '"';
+        new bootstrap.Modal(document.getElementById('deleteProductModal')).show();
+    }
     </script>
 
 </th:block>

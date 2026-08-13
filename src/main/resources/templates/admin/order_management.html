@@ -7,140 +7,238 @@
 
 <th:block th:fragment="content">
 
-        <!-- Status filter tabs + search -->
-        <div class="d-flex justify-content-between align-items-center mb-3 gap-3 flex-wrap">
-            <div>
-                <a th:href="@{/admin/orders}"
-                   class="btn btn-sm me-1"
-                   th:classappend="${filterStatus == null} ? 'ce-btn-primary' : 'btn-outline-secondary'">
-                    All
-                </a>
-                <a th:each="s : ${ {'PENDING','PREPARING','READY','COMPLETED','CANCELLED'} }"
-                   th:href="@{/admin/orders(status=${s})}"
-                   th:text="${s}"
-                   class="btn btn-sm me-1"
-                   th:classappend="${filterStatus?.name() == s} ? 'ce-btn-primary' : 'btn-outline-secondary'">
-                    Status
-                </a>
-            </div>
-            <div class="input-group" style="max-width: 300px;">
-                <span class="input-group-text bg-white border-end-0">
-                    <i class="bi bi-search text-muted"></i>
-                </span>
-                <input type="text" id="orderSearch" class="form-control border-start-0 ps-0"
-                       placeholder="Search order # or customer…"
-                       autocomplete="off"/>
-                <button class="btn btn-outline-secondary" type="button" id="clearOrderSearch"
-                        style="display:none;" title="Clear">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
+    <!-- ── Toolbar: status tabs + search ──────────────────────────────── -->
+    <div class="d-flex justify-content-between align-items-start mb-3 gap-2 flex-wrap">
+        <!-- Status filter tabs -->
+        <div class="d-flex flex-wrap gap-1">
+            <a th:href="@{/admin/orders}"
+               class="btn btn-sm"
+               th:classappend="${filterStatus == null} ? 'ce-btn-primary' : 'btn-outline-secondary'">
+                All
+            </a>
+            <a th:each="s : ${ {'PENDING','PREPARING','READY','COMPLETED','CANCELLED'} }"
+               th:href="@{/admin/orders(status=${s})}"
+               th:text="${s}"
+               class="btn btn-sm"
+               th:classappend="${filterStatus?.name() == s} ? 'ce-btn-primary' : 'btn-outline-secondary'">
+                Status
+            </a>
         </div>
-
-        <!-- Flash -->
-        <div th:if="${message}" class="alert alert-success alert-dismissible fade show">
-            <span th:text="${message}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <!-- Search -->
+        <div class="input-group" style="max-width: 280px; flex: 1 1 180px;">
+            <span class="input-group-text bg-white border-end-0">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" id="orderSearch" class="form-control border-start-0 ps-0"
+                   placeholder="Order # or customer…" autocomplete="off"/>
+            <button class="btn btn-outline-secondary" type="button" id="clearOrderSearch"
+                    style="display:none;" title="Clear">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
+    </div>
 
-        <div class="card border-0 shadow-sm">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Order #</th>
-                            <th>Date</th>
-                            <th>Customer</th>
-                            <th>Type</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th>Payment</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="orderTableBody">
-                        <tr th:each="order : ${orders}"
-                            data-order-row
-                            th:data-number="${order.orderNumber}"
-                            th:data-customer="${order.user.fullName}">
-                            <td class="fw-mono small" th:text="${order.orderNumber}">CE-00001</td>
-                            <td class="small text-muted"
-                                th:text="${#temporals.format(order.createdAt,'MMM d HH:mm')}">Jan 1</td>
-                            <td th:text="${order.user.fullName}">Customer</td>
-                            <td class="small text-muted" th:text="${order.orderType}">TAKEOUT</td>
-                            <td class="fw-bold"
-                                th:text="'₱' + ${#numbers.formatDecimal(order.totalAmount,1,2)}">₱0.00</td>
-                            <td>
-                                <span class="badge"
-                                      th:classappend="${order.status.name() == 'COMPLETED'} ? 'bg-success' :
-                                                      (${order.status.name() == 'CANCELLED'} ? 'bg-danger' :
-                                                      (${order.status.name() == 'PREPARING'} ? 'bg-warning text-dark' :
-                                                      (${order.status.name() == 'READY'} ? 'bg-info' : 'bg-secondary')))"
-                                      th:text="${order.status}">Status</span>
-                            </td>
-                            <td>
-                                <span class="badge"
-                                      th:if="${order.payment != null}"
-                                      th:classappend="${order.payment.status.name() == 'PAID'} ? 'bg-success' :
-                                                       (${order.payment.status.name() == 'FAILED'} ? 'bg-danger' : 'bg-secondary')"
-                                      th:text="${order.payment?.status}">PAID</span>
-                                <span th:unless="${order.payment != null}" class="text-muted small">—</span>
-                            </td>
-                            <td>
-                                <a th:href="@{/admin/orders/{id}(id=${order.id})}"
-                                   class="btn btn-sm btn-outline-secondary">
-                                    Manage
-                                </a>
-                            </td>
-                        </tr>
-                        <tr th:if="${orders.isEmpty()}">
-                            <td colspan="8" class="text-center text-muted py-4">No orders found.</td>
-                        </tr>
-                        <tr id="noOrderSearchResults" style="display:none;">
-                            <td colspan="8" class="text-center text-muted py-4">
-                                <i class="bi bi-search me-1"></i> No orders match your search.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+    <!-- Flash -->
+    <div th:if="${message}" class="alert alert-success alert-dismissible fade show mb-3">
+        <span th:text="${message}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- ── Empty state ─────────────────────────────────────────────────── -->
+    <div th:if="${orders.isEmpty()}" class="text-center text-muted py-5">
+        <i class="bi bi-receipt display-4"></i>
+        <p class="mt-3">No orders found.</p>
+    </div>
+
+    <!-- ── Order cards ─────────────────────────────────────────────────── -->
+    <div id="orderGrid" class="row g-3" th:unless="${orders.isEmpty()}">
+        <div class="col-12 col-md-6 col-xl-4 order-card-col"
+             th:each="order : ${orders}"
+             th:data-number="${order.orderNumber}"
+             th:data-customer="${order.user.fullName}">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-3">
+                    <!-- Top row: order number + status -->
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <div class="fw-bold small" th:text="${order.orderNumber}">CE-00001</div>
+                            <div class="text-muted" style="font-size:.75rem;"
+                                 th:text="${#temporals.format(order.createdAt,'MMM d, yyyy HH:mm')}">Jan 1</div>
+                        </div>
+                        <span class="badge"
+                              th:classappend="${order.status.name() == 'COMPLETED'} ? 'bg-success' :
+                                              (${order.status.name() == 'CANCELLED'}  ? 'bg-danger' :
+                                              (${order.status.name() == 'PREPARING'}  ? 'bg-warning text-dark' :
+                                              (${order.status.name() == 'READY'}      ? 'bg-info text-dark' : 'bg-secondary')))"
+                              th:text="${order.status}">Status</span>
+                    </div>
+
+                    <!-- Customer + type -->
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-person-circle text-muted"></i>
+                        <span class="fw-medium small" th:text="${order.user.fullName}">Customer</span>
+                        <span class="badge bg-light text-dark border ms-auto" style="font-size:.7rem;"
+                              th:text="${order.orderType.name().replace('_',' ')}">TAKEOUT</span>
+                    </div>
+
+                    <!-- Total + payment -->
+                    <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top">
+                        <span class="fw-bold ce-color-primary"
+                              th:text="'₱' + ${#numbers.formatDecimal(order.totalAmount,1,2)}">₱0.00</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge"
+                                  th:if="${order.payment != null}"
+                                  th:classappend="${order.payment.status.name() == 'PAID'}   ? 'bg-success' :
+                                                  (${order.payment.status.name() == 'FAILED'} ? 'bg-danger' : 'bg-secondary')"
+                                  th:text="${order.payment.status}">PAID</span>
+                            <span th:unless="${order.payment != null}" class="text-muted small">No payment</span>
+                            <a th:href="@{/admin/orders/{id}(id=${order.id})}"
+                               class="btn btn-sm ce-btn-primary">
+                                Manage
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
 
-</th:block>
+    <!-- No search results -->
+    <div id="noOrderSearchResults" class="text-center text-muted py-5" style="display:none;">
+        <i class="bi bi-search display-6"></i>
+        <p class="mt-2">No orders match your search.</p>
+    </div>
 
-<script>
+    <!-- ── Pagination ───────────────────────────────────────────────────── -->
+    <div id="paginationWrap" class="d-flex align-items-center justify-content-between mt-4 flex-wrap gap-2"
+         th:unless="${orders.isEmpty()}">
+        <div class="text-muted small" id="pageInfo"></div>
+        <nav aria-label="Orders pagination">
+            <ul class="pagination ce-pagination mb-0" id="pagination"></ul>
+        </nav>
+    </div>
+
+    <script>
     (function () {
-        const searchInput = document.getElementById('orderSearch');
-        const clearBtn    = document.getElementById('clearOrderSearch');
-        const tbody       = document.getElementById('orderTableBody');
-        const noResults   = document.getElementById('noOrderSearchResults');
+    const PAGE_SIZE = 15;
+    let currentPage = 1;
+    let filteredCols = [];
 
-        searchInput.addEventListener('input', filterTable);
-        clearBtn.addEventListener('click', function () {
-            searchInput.value = '';
-            filterTable();
-            searchInput.focus();
+    const searchInput = document.getElementById('orderSearch');
+    const clearBtn    = document.getElementById('clearOrderSearch');
+    const grid        = document.getElementById('orderGrid');
+    const noResults   = document.getElementById('noOrderSearchResults');
+    const pageInfo    = document.getElementById('pageInfo');
+    const pagination  = document.getElementById('pagination');
+
+    if (!grid) return;
+
+    const allCols = Array.from(grid.querySelectorAll('.order-card-col'));
+
+    searchInput.addEventListener('input', function () {
+        currentPage = 1;
+        applyFilter();
+    });
+
+    clearBtn.addEventListener('click', function () {
+        searchInput.value = '';
+        currentPage = 1;
+        applyFilter();
+        searchInput.focus();
+    });
+
+    function applyFilter() {
+        const query = searchInput.value.trim().toLowerCase();
+        clearBtn.style.display = query ? 'inline-block' : 'none';
+
+        filteredCols = allCols.filter(function (col) {
+            const number   = (col.dataset.number   || '').toLowerCase();
+            const customer = (col.dataset.customer || '').toLowerCase();
+            return !query || number.includes(query) || customer.includes(query);
         });
 
-        function filterTable() {
-            const query = searchInput.value.trim().toLowerCase();
-            clearBtn.style.display = query ? 'inline-block' : 'none';
+        noResults.style.display = (query && filteredCols.length === 0) ? '' : 'none';
+        renderPage();
+    }
 
-            const rows = tbody.querySelectorAll('tr[data-order-row]');
-            let visibleCount = 0;
+    function renderPage() {
+        const total      = filteredCols.length;
+        const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+        currentPage      = Math.min(currentPage, totalPages);
 
-            rows.forEach(function (row) {
-                const number   = (row.dataset.number   || '').toLowerCase();
-                const customer = (row.dataset.customer || '').toLowerCase();
-                const matches  = !query || number.includes(query) || customer.includes(query);
-                row.style.display = matches ? '' : 'none';
-                if (matches) visibleCount++;
-            });
+        const start = (currentPage - 1) * PAGE_SIZE;
+        const end   = start + PAGE_SIZE;
 
-            noResults.style.display = (query && visibleCount === 0) ? '' : 'none';
+        allCols.forEach(col => col.style.display = 'none');
+        filteredCols.forEach(function (col, i) {
+            col.style.display = (i >= start && i < end) ? '' : 'none';
+        });
+
+        if (total > 0) {
+            const from = start + 1;
+            const to   = Math.min(end, total);
+            pageInfo.textContent = 'Showing ' + from + '–' + to + ' of ' + total + ' orders';
+        } else {
+            pageInfo.textContent = '';
         }
-    })();
+
+        pagination.innerHTML = '';
+        if (totalPages <= 1) return;
+
+        // Prev
+        const prevLi = document.createElement('li');
+        prevLi.className = 'page-item' + (currentPage === 1 ? ' disabled' : '');
+        prevLi.innerHTML = '<a class="page-link" href="#">&laquo;</a>';
+        prevLi.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (currentPage > 1) { currentPage--; renderPage(); }
+        });
+        pagination.appendChild(prevLi);
+
+        pageRange(currentPage, totalPages).forEach(function (p) {
+            const li = document.createElement('li');
+            if (p === '...') {
+                li.className = 'page-item disabled';
+                li.innerHTML = '<span class="page-link">…</span>';
+            } else {
+                li.className = 'page-item' + (p === currentPage ? ' active' : '');
+                li.innerHTML = '<a class="page-link" href="#">' + p + '</a>';
+                li.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    currentPage = p;
+                    renderPage();
+                });
+            }
+            pagination.appendChild(li);
+        });
+
+        // Next
+        const nextLi = document.createElement('li');
+        nextLi.className = 'page-item' + (currentPage === totalPages ? ' disabled' : '');
+        nextLi.innerHTML = '<a class="page-link" href="#">&raquo;</a>';
+        nextLi.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (currentPage < totalPages) { currentPage++; renderPage(); }
+        });
+        pagination.appendChild(nextLi);
+    }
+
+    function pageRange(current, total) {
+        if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+        const pages = [1];
+        if (current > 3) pages.push('...');
+        for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i);
+        if (current < total - 2) pages.push('...');
+        pages.push(total);
+        return pages;
+    }
+
+    filteredCols = allCols.slice();
+    renderPage();
+})();
 </script>
+
+</th:block>
 
 </body>
 </html>

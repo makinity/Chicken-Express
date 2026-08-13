@@ -298,21 +298,83 @@
     padding: 0.75rem 1.25rem;
 }
 
+/* ── Toolbar search input — prevent tall stretch on mobile ───────────── */
+
+.ce-admin-content .input-group {
+    height: 38px;
+    flex-wrap: nowrap;
+}
+
+.ce-admin-content .input-group .form-control,
+.ce-admin-content .input-group .input-group-text,
+.ce-admin-content .input-group .btn {
+    height: 38px;
+}
+
+/* ── Pagination ──────────────────────────────────────────────────────── */
+
+.ce-pagination {
+    gap: 4px;
+}
+
+.ce-pagination .page-item .page-link {
+    border-radius: 0.4rem !important;
+    border: 1px solid var(--border);
+    color: var(--primary-darker);
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.35rem 0.65rem;
+    min-width: 34px;
+    text-align: center;
+    background-color: #fff;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    line-height: 1.4;
+}
+
+.ce-pagination .page-item .page-link:hover {
+    background-color: var(--primary-light);
+    border-color: var(--primary);
+    color: var(--primary-darker);
+}
+
+.ce-pagination .page-item.active .page-link {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(99, 153, 34, 0.35);
+}
+
+.ce-pagination .page-item.disabled .page-link {
+    background-color: #f8f9fa;
+    border-color: var(--border);
+    color: #adb5bd;
+}
+
 /* ── Responsive ─────────────────────────────────────────────────────── */
 
 @media (max-width: 767.98px) {
+    .ce-admin-body {
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
     .ce-admin-shell {
         height: auto;
+        min-height: 100vh;
         overflow: visible;
+        flex-direction: column;
     }
 
     .ce-admin-right {
         height: auto;
+        min-height: 0;
         overflow: visible;
+        width: 100%;
     }
 
     .ce-admin-main {
         overflow: visible;
+        width: 100%;
     }
 
     .ce-admin-content {

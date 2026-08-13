@@ -7,82 +7,114 @@
 
 <th:block th:fragment="content">
 
-    <!-- Add button -->
-    <div class="d-flex justify-content-end mb-4">
-        <button class="btn ce-btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-            <i class="bi bi-plus-lg"></i> Add Category
+    <!-- ── Toolbar ─────────────────────────────────────────────────────── -->
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-2 flex-wrap">
+        <div class="input-group flex-nowrap" style="max-width: 300px; width: 100%;">
+            <span class="input-group-text bg-white border-end-0">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" id="categorySearch" class="form-control border-start-0 ps-0"
+                   placeholder="Search by name…" autocomplete="off"/>
+            <button class="btn btn-outline-secondary" type="button" id="clearCategorySearch"
+                    style="display:none;" title="Clear">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <button class="btn ce-btn-primary flex-shrink-0" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+            <i class="bi bi-plus-lg"></i>
+            <span class="d-none d-sm-inline"> Add Category</span>
+            <span class="d-inline d-sm-none"> Add</span>
         </button>
     </div>
 
-    <!-- Category table -->
-    <div class="card border-0 shadow-sm">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width:60px;">Image</th>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th class="text-center">Sort</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-center">Products</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="cat : ${categories}">
-                        <!-- Thumbnail -->
-                        <td>
-                            <img th:if="${cat.imageUrl != null}"
-                                 th:src="${cat.imageUrl}"
-                                 th:alt="${cat.name}"
-                                 class="rounded"
-                                 style="width:48px;height:48px;object-fit:cover;"/>
-                            <div th:unless="${cat.imageUrl != null}"
-                                 class="rounded d-flex align-items-center justify-content-center bg-light"
-                                 style="width:48px;height:48px;font-size:1.5rem;">
-                                🍽️
-                            </div>
-                        </td>
-                        <td class="fw-medium" th:text="${cat.name}">Category</td>
-                        <td class="text-muted small" th:text="${cat.description ?: '—'}">—</td>
-                        <td class="text-center text-muted small" th:text="${cat.sortOrder}">0</td>
-                        <td class="text-center">
-                            <span th:if="${cat.active}" class="badge bg-success">Active</span>
-                            <span th:unless="${cat.active}" class="badge bg-secondary">Inactive</span>
-                        </td>
-                        <td class="text-center">
-                            <span class="badge bg-light text-dark border"
-                                  th:text="${cat.products.size()}">0</span>
-                        </td>
-                        <td class="text-end">
-                            <button class="btn btn-sm btn-outline-primary me-1"
-                                    th:data-id="${cat.id}"
-                                    th:data-name="${cat.name}"
-                                    th:data-description="${cat.description}"
-                                    th:data-sort="${cat.sortOrder}"
-                                    th:data-active="${cat.active}"
-                                    th:data-image="${cat.imageUrl}"
-                                    onclick="openEditModal(this)">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger"
-                                    th:data-id="${cat.id}"
-                                    th:data-name="${cat.name}"
-                                    th:data-count="${cat.products.size()}"
-                                    onclick="openDeleteModal(this)">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr th:if="${categories.isEmpty()}">
-                        <td colspan="7" class="text-center text-muted py-4">
-                            No categories yet. Add the first one.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+    <!-- ── Empty state ─────────────────────────────────────────────────── -->
+    <div th:if="${categories.isEmpty()}" class="text-center text-muted py-5">
+        <i class="bi bi-tags display-4"></i>
+        <p class="mt-3">No categories yet.
+            <a href="#" data-bs-toggle="modal" data-bs-target="#addCategoryModal" class="ce-link">
+                Add the first one.
+            </a>
+        </p>
+    </div>
+
+    <!-- ── Category cards ──────────────────────────────────────────────── -->
+    <div id="categoryGrid" class="row g-3" th:unless="${categories.isEmpty()}">
+        <div class="col-12 col-md-6 col-xl-4 cat-card-col"
+             th:each="cat : ${categories}"
+             th:data-name="${cat.name}">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="d-flex">
+                    <!-- Category image -->
+                    <div class="flex-shrink-0" style="width:80px;height:80px;">
+                        <img th:if="${cat.imageUrl != null}"
+                             th:src="${cat.imageUrl}"
+                             th:alt="${cat.name}"
+                             style="width:80px;height:80px;object-fit:cover;border-radius:.375rem 0 0 .375rem;"/>
+                        <div th:unless="${cat.imageUrl != null}"
+                             class="d-flex align-items-center justify-content-center bg-light h-100"
+                             style="border-radius:.375rem 0 0 .375rem;font-size:1.75rem;">
+                            🍽️
+                        </div>
+                    </div>
+
+                    <!-- Card body -->
+                    <div class="card-body py-2 px-3 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="fw-semibold lh-sm" th:text="${cat.name}">Category</div>
+                            <div class="text-muted small text-truncate"
+                                 th:text="${cat.description ?: '—'}">Description</div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
+                            <span th:if="${cat.active}" class="badge bg-success" style="font-size:.65rem;">Active</span>
+                            <span th:unless="${cat.active}" class="badge bg-secondary" style="font-size:.65rem;">Inactive</span>
+                            <span class="badge bg-light text-dark border" style="font-size:.65rem;">
+                                <i class="bi bi-box-seam"></i>
+                                <span th:text="${cat.products.size()}">0</span> products
+                            </span>
+                            <span class="text-muted ms-auto" style="font-size:.7rem;">
+                                Sort: <span th:text="${cat.sortOrder}">0</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="d-flex flex-column justify-content-center gap-2 pe-2">
+                        <button class="btn btn-sm btn-outline-primary"
+                                th:data-id="${cat.id}"
+                                th:data-name="${cat.name}"
+                                th:data-description="${cat.description}"
+                                th:data-sort="${cat.sortOrder}"
+                                th:data-active="${cat.active}"
+                                th:data-image="${cat.imageUrl}"
+                                onclick="openEditModal(this)" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger"
+                                th:data-id="${cat.id}"
+                                th:data-name="${cat.name}"
+                                th:data-count="${cat.products.size()}"
+                                onclick="openDeleteModal(this)" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
+
+    <!-- No search results -->
+    <div id="noCategorySearchResults" class="text-center text-muted py-5" style="display:none;">
+        <i class="bi bi-search display-6"></i>
+        <p class="mt-2">No categories match your search.</p>
+    </div>
+
+    <!-- ── Pagination ───────────────────────────────────────────────────── -->
+    <div id="paginationWrap" class="d-flex align-items-center justify-content-between mt-4 flex-wrap gap-2"
+         th:unless="${categories.isEmpty()}">
+        <div class="text-muted small" id="pageInfo"></div>
+        <nav aria-label="Categories pagination">
+            <ul class="pagination ce-pagination mb-0" id="pagination"></ul>
+        </nav>
     </div>
 
 
@@ -92,17 +124,12 @@
     <div class="modal fade" id="addCategoryModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form th:action="@{/admin/categories/new}" method="post"
-                      enctype="multipart/form-data">
+                <form th:action="@{/admin/categories/new}" method="post" enctype="multipart/form-data">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-
                     <div class="modal-header">
-                        <h5 class="modal-title fw-bold">
-                            <i class="bi bi-plus-circle"></i> Add Category
-                        </h5>
+                        <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle"></i> Add Category</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label fw-medium">Name <span class="text-danger">*</span></label>
@@ -116,8 +143,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-medium">Display Order</label>
-                            <input type="number" name="sortOrder" class="form-control"
-                                   value="0" min="0" max="999"/>
+                            <input type="number" name="sortOrder" class="form-control" value="0" min="0" max="999"/>
                             <div class="form-text">Lower number = shown first in the menu.</div>
                         </div>
                         <div class="mb-1">
@@ -125,18 +151,13 @@
                             <input type="file" name="imageFile" class="form-control"
                                    accept="image/*" onchange="previewImage(this, 'addPreview')"/>
                             <div class="form-text">Optional. JPG, PNG, WebP — max 5MB.</div>
-                            <img id="addPreview" src="#" alt="Preview"
-                                 class="mt-2 rounded d-none"
+                            <img id="addPreview" src="#" alt="Preview" class="mt-2 rounded d-none"
                                  style="max-height:120px;max-width:100%;object-fit:cover;"/>
                         </div>
                     </div>
-
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary"
-                                data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn ce-btn-primary">
-                            <i class="bi bi-save"></i> Save Category
-                        </button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn ce-btn-primary"><i class="bi bi-save"></i> Save Category</button>
                     </div>
                 </form>
             </div>
@@ -152,59 +173,44 @@
             <div class="modal-content">
                 <form id="editCategoryForm" method="post" enctype="multipart/form-data">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-
                     <div class="modal-header">
-                        <h5 class="modal-title fw-bold">
-                            <i class="bi bi-pencil-square"></i> Edit Category
-                        </h5>
+                        <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square"></i> Edit Category</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label fw-medium">Name <span class="text-danger">*</span></label>
-                            <input type="text" id="editName" name="name" class="form-control"
-                                   required maxlength="100"/>
+                            <input type="text" id="editName" name="name" class="form-control" required maxlength="100"/>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-medium">Description</label>
-                            <textarea id="editDescription" name="description"
-                                      class="form-control" rows="2" maxlength="255"></textarea>
+                            <textarea id="editDescription" name="description" class="form-control" rows="2" maxlength="255"></textarea>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-medium">Display Order</label>
-                            <input type="number" id="editSortOrder" name="sortOrder"
-                                   class="form-control" min="0" max="999"/>
+                            <input type="number" id="editSortOrder" name="sortOrder" class="form-control" min="0" max="999"/>
                         </div>
                         <div class="mb-3 form-check">
-                            <input class="form-check-input" type="checkbox"
-                                   id="editActive" name="active" value="true"/>
+                            <input class="form-check-input" type="checkbox" id="editActive" name="active" value="true"/>
                             <label class="form-check-label" for="editActive">Active</label>
                         </div>
                         <div class="mb-1">
                             <label class="form-label fw-medium">Category Image</label>
-                            <!-- Current image preview -->
                             <div id="editCurrentImageWrap" class="mb-2 d-none">
-                                <img id="editCurrentImage" src="#" alt="Current image"
-                                     class="rounded"
+                                <img id="editCurrentImage" src="#" alt="Current image" class="rounded"
                                      style="max-height:100px;max-width:100%;object-fit:cover;"/>
                                 <div class="form-text">Current image. Upload a new one to replace it.</div>
                             </div>
                             <input type="file" name="imageFile" class="form-control"
                                    accept="image/*" onchange="previewImage(this, 'editPreview')"/>
                             <div class="form-text">Leave empty to keep the current image.</div>
-                            <img id="editPreview" src="#" alt="New preview"
-                                 class="mt-2 rounded d-none"
+                            <img id="editPreview" src="#" alt="New preview" class="mt-2 rounded d-none"
                                  style="max-height:120px;max-width:100%;object-fit:cover;"/>
                         </div>
                     </div>
-
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary"
-                                data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn ce-btn-primary">
-                            <i class="bi bi-save"></i> Update Category
-                        </button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn ce-btn-primary"><i class="bi bi-save"></i> Update Category</button>
                     </div>
                 </form>
             </div>
@@ -220,28 +226,19 @@
             <div class="modal-content">
                 <form id="deleteCategoryForm" method="post">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-
                     <div class="modal-header border-0 pb-0">
-                        <h5 class="modal-title fw-bold text-danger">
-                            <i class="bi bi-trash3"></i> Delete Category
-                        </h5>
+                        <h5 class="modal-title fw-bold text-danger"><i class="bi bi-trash3"></i> Delete Category</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-
                     <div class="modal-body pt-2">
-                        <p class="mb-0">Delete <strong id="deleteTargetName"></strong>?
-                            This cannot be undone.</p>
+                        <p class="mb-0">Delete <strong id="deleteTargetName"></strong>? This cannot be undone.</p>
                         <p id="deleteWarning" class="text-danger small mt-2 mb-0 d-none">
-                            <i class="bi bi-exclamation-triangle"></i>
-                            This category has products. Reassign them first.
+                            <i class="bi bi-exclamation-triangle"></i> This category has products. Reassign them first.
                         </p>
                     </div>
-
                     <div class="modal-footer border-0 pt-0">
-                        <button type="button" class="btn btn-outline-secondary btn-sm"
-                                data-bs-dismiss="modal">Cancel</button>
-                        <button id="deleteConfirmBtn" type="submit"
-                                class="btn btn-danger btn-sm">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button id="deleteConfirmBtn" type="submit" class="btn btn-danger btn-sm">
                             <i class="bi bi-trash"></i> Delete
                         </button>
                     </div>
@@ -254,73 +251,132 @@
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <!--  Scripts                                                            -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <script th:inline="javascript">
-        function openEditModal(btn) {
-            const id     = btn.dataset.id;
-            const name   = btn.dataset.name;
-            const desc   = btn.dataset.description || '';
-            const sort   = btn.dataset.sort;
-            const active = btn.dataset.active === 'true';
-            const image  = btn.dataset.image || '';
+    <script>
+    (function () {
+        const PAGE_SIZE = 15;
+        let currentPage = 1;
+        let filteredCols = [];
 
-            document.getElementById('editCategoryForm').action = '/admin/categories/' + id + '/edit';
-            document.getElementById('editName').value        = name;
-            document.getElementById('editDescription').value = desc;
-            document.getElementById('editSortOrder').value   = sort;
-            document.getElementById('editActive').checked    = active;
+        const searchInput = document.getElementById('categorySearch');
+        const clearBtn    = document.getElementById('clearCategorySearch');
+        const grid        = document.getElementById('categoryGrid');
+        const noResults   = document.getElementById('noCategorySearchResults');
+        const pageInfo    = document.getElementById('pageInfo');
+        const pagination  = document.getElementById('pagination');
 
-            // Reset new-image preview
-            const editPreview = document.getElementById('editPreview');
-            editPreview.classList.add('d-none');
-            editPreview.src = '#';
+        if (!grid) return;
 
-            // Show/hide current image
-            const wrap = document.getElementById('editCurrentImageWrap');
-            const img  = document.getElementById('editCurrentImage');
-            if (image) {
-                img.src = image;
-                wrap.classList.remove('d-none');
-            } else {
-                wrap.classList.add('d-none');
-                img.src = '#';
-            }
+        const allCols = Array.from(grid.querySelectorAll('.cat-card-col'));
 
-            new bootstrap.Modal(document.getElementById('editCategoryModal')).show();
+        searchInput.addEventListener('input', function () { currentPage = 1; applyFilter(); });
+        clearBtn.addEventListener('click', function () {
+            searchInput.value = ''; currentPage = 1; applyFilter(); searchInput.focus();
+        });
+
+        function applyFilter() {
+            const query = searchInput.value.trim().toLowerCase();
+            clearBtn.style.display = query ? 'inline-block' : 'none';
+            filteredCols = allCols.filter(col => !query || (col.dataset.name || '').toLowerCase().includes(query));
+            noResults.style.display = (query && filteredCols.length === 0) ? '' : 'none';
+            renderPage();
         }
 
-        function openDeleteModal(btn) {
-            const id    = btn.dataset.id;
-            const name  = btn.dataset.name;
-            const count = parseInt(btn.dataset.count, 10);
+        function renderPage() {
+            const total      = filteredCols.length;
+            const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+            currentPage      = Math.min(currentPage, totalPages);
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const end   = start + PAGE_SIZE;
 
-            document.getElementById('deleteCategoryForm').action = '/admin/categories/' + id + '/delete';
-            document.getElementById('deleteTargetName').textContent = '"' + name + '"';
+            allCols.forEach(col => col.style.display = 'none');
+            filteredCols.forEach((col, i) => { col.style.display = (i >= start && i < end) ? '' : 'none'; });
 
-            const warning    = document.getElementById('deleteWarning');
-            const confirmBtn = document.getElementById('deleteConfirmBtn');
-            if (count > 0) {
-                warning.classList.remove('d-none');
-                confirmBtn.disabled = true;
-            } else {
-                warning.classList.add('d-none');
-                confirmBtn.disabled = false;
-            }
+            pageInfo.textContent = total > 0
+                ? 'Showing ' + (start + 1) + '–' + Math.min(end, total) + ' of ' + total + ' categories'
+                : '';
 
-            new bootstrap.Modal(document.getElementById('deleteCategoryModal')).show();
+            pagination.innerHTML = '';
+            if (totalPages <= 1) return;
+
+            const prevLi = document.createElement('li');
+            prevLi.className = 'page-item' + (currentPage === 1 ? ' disabled' : '');
+            prevLi.innerHTML = '<a class="page-link" href="#">&laquo;</a>';
+            prevLi.addEventListener('click', e => { e.preventDefault(); if (currentPage > 1) { currentPage--; renderPage(); } });
+            pagination.appendChild(prevLi);
+
+            pageRange(currentPage, totalPages).forEach(function (p) {
+                const li = document.createElement('li');
+                if (p === '...') {
+                    li.className = 'page-item disabled';
+                    li.innerHTML = '<span class="page-link">…</span>';
+                } else {
+                    li.className = 'page-item' + (p === currentPage ? ' active' : '');
+                    li.innerHTML = '<a class="page-link" href="#">' + p + '</a>';
+                    li.addEventListener('click', e => { e.preventDefault(); currentPage = p; renderPage(); });
+                }
+                pagination.appendChild(li);
+            });
+
+            const nextLi = document.createElement('li');
+            nextLi.className = 'page-item' + (currentPage === totalPages ? ' disabled' : '');
+            nextLi.innerHTML = '<a class="page-link" href="#">&raquo;</a>';
+            nextLi.addEventListener('click', e => { e.preventDefault(); if (currentPage < totalPages) { currentPage++; renderPage(); } });
+            pagination.appendChild(nextLi);
         }
 
-        // Live image preview before upload
-        function previewImage(input, previewId) {
-            const preview = document.getElementById(previewId);
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    preview.src = e.target.result;
-                    preview.classList.remove('d-none');
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
+        function pageRange(current, total) {
+            if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+            const pages = [1];
+            if (current > 3) pages.push('...');
+            for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i);
+            if (current < total - 2) pages.push('...');
+            pages.push(total);
+            return pages;
         }
+
+        filteredCols = allCols.slice();
+        renderPage();
+    })();
+
+    function openEditModal(btn) {
+        document.getElementById('editCategoryForm').action = '/admin/categories/' + btn.dataset.id + '/edit';
+        document.getElementById('editName').value        = btn.dataset.name;
+        document.getElementById('editDescription').value = btn.dataset.description || '';
+        document.getElementById('editSortOrder').value   = btn.dataset.sort;
+        document.getElementById('editActive').checked    = btn.dataset.active === 'true';
+
+        const editPreview = document.getElementById('editPreview');
+        editPreview.classList.add('d-none'); editPreview.src = '#';
+
+        const wrap = document.getElementById('editCurrentImageWrap');
+        const img  = document.getElementById('editCurrentImage');
+        if (btn.dataset.image && btn.dataset.image !== 'null') {
+            img.src = btn.dataset.image; wrap.classList.remove('d-none');
+        } else {
+            wrap.classList.add('d-none'); img.src = '#';
+        }
+        new bootstrap.Modal(document.getElementById('editCategoryModal')).show();
+    }
+
+    function openDeleteModal(btn) {
+        const count = parseInt(btn.dataset.count, 10);
+        document.getElementById('deleteCategoryForm').action = '/admin/categories/' + btn.dataset.id + '/delete';
+        document.getElementById('deleteTargetName').textContent = '"' + btn.dataset.name + '"';
+        const warning    = document.getElementById('deleteWarning');
+        const confirmBtn = document.getElementById('deleteConfirmBtn');
+        warning.classList.toggle('d-none', count === 0);
+        confirmBtn.disabled = count > 0;
+        new bootstrap.Modal(document.getElementById('deleteCategoryModal')).show();
+    }
+
+    function previewImage(input, previewId) {
+        const preview = document.getElementById(previewId);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => { preview.src = e.target.result; preview.classList.remove('d-none'); };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
     </script>
 
 </th:block>
