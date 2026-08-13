@@ -33,8 +33,14 @@
 
                 <div class="mb-4">
                     <label for="password" class="form-label fw-medium">Password</label>
-                    <input id="password" name="password" type="password" class="form-control"
-                           placeholder="••••••••" required/>
+                    <div class="input-group">
+                        <input id="password" name="password" type="password" class="form-control"
+                               placeholder="••••••••" required/>
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword"
+                                tabindex="-1" title="Show/hide password">
+                            <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn ce-btn-primary w-100 fw-medium py-2">
@@ -54,6 +60,20 @@
 </main>
 
 <footer th:replace="~{layout/footer :: footer}"></footer>
+
+<script>
+    document.getElementById('togglePassword').addEventListener('click', function () {
+        const input = document.getElementById('password');
+        const icon  = document.getElementById('togglePasswordIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('bi-eye', 'bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+    });
+</script>
 
 </body>
 </html>

@@ -7,20 +7,34 @@
 
 <th:block th:fragment="content">
 
-        <!-- Status filter tabs -->
-        <div class="mb-3">
-            <a th:href="@{/admin/orders}"
-               class="btn btn-sm me-1"
-               th:classappend="${filterStatus == null} ? 'ce-btn-primary' : 'btn-outline-secondary'">
-                All
-            </a>
-            <a th:each="s : ${ {'PENDING','PREPARING','READY','COMPLETED','CANCELLED'} }"
-               th:href="@{/admin/orders(status=${s})}"
-               th:text="${s}"
-               class="btn btn-sm me-1"
-               th:classappend="${filterStatus?.name() == s} ? 'ce-btn-primary' : 'btn-outline-secondary'">
-                Status
-            </a>
+        <!-- Status filter tabs + search -->
+        <div class="d-flex justify-content-between align-items-center mb-3 gap-3 flex-wrap">
+            <div>
+                <a th:href="@{/admin/orders}"
+                   class="btn btn-sm me-1"
+                   th:classappend="${filterStatus == null} ? 'ce-btn-primary' : 'btn-outline-secondary'">
+                    All
+                </a>
+                <a th:each="s : ${ {'PENDING','PREPARING','READY','COMPLETED','CANCELLED'} }"
+                   th:href="@{/admin/orders(status=${s})}"
+                   th:text="${s}"
+                   class="btn btn-sm me-1"
+                   th:classappend="${filterStatus?.name() == s} ? 'ce-btn-primary' : 'btn-outline-secondary'">
+                    Status
+                </a>
+            </div>
+            <div class="input-group" style="max-width: 300px;">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" id="orderSearch" class="form-control border-start-0 ps-0"
+                       placeholder="Search order # or customer…"
+                       autocomplete="off"/>
+                <button class="btn btn-outline-secondary" type="button" id="clearOrderSearch"
+                        style="display:none;" title="Clear">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
         </div>
 
         <!-- Flash -->
@@ -44,8 +58,11 @@
                             <th></th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr th:each="order : ${orders}">
+                    <tbody id="orderTableBody">
+                        <tr th:each="order : ${orders}"
+                            data-order-row
+                            th:data-number="${order.orderNumber}"
+                            th:data-customer="${order.user.fullName}">
                             <td class="fw-mono small" th:text="${order.orderNumber}">CE-00001</td>
                             <td class="small text-muted"
                                 th:text="${#temporals.format(order.createdAt,'MMM d HH:mm')}">Jan 1</td>
@@ -79,12 +96,51 @@
                         <tr th:if="${orders.isEmpty()}">
                             <td colspan="8" class="text-center text-muted py-4">No orders found.</td>
                         </tr>
+                        <tr id="noOrderSearchResults" style="display:none;">
+                            <td colspan="8" class="text-center text-muted py-4">
+                                <i class="bi bi-search me-1"></i> No orders match your search.
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
 </th:block>
+
+<script>
+    (function () {
+        const searchInput = document.getElementById('orderSearch');
+        const clearBtn    = document.getElementById('clearOrderSearch');
+        const tbody       = document.getElementById('orderTableBody');
+        const noResults   = document.getElementById('noOrderSearchResults');
+
+        searchInput.addEventListener('input', filterTable);
+        clearBtn.addEventListener('click', function () {
+            searchInput.value = '';
+            filterTable();
+            searchInput.focus();
+        });
+
+        function filterTable() {
+            const query = searchInput.value.trim().toLowerCase();
+            clearBtn.style.display = query ? 'inline-block' : 'none';
+
+            const rows = tbody.querySelectorAll('tr[data-order-row]');
+            let visibleCount = 0;
+
+            rows.forEach(function (row) {
+                const number   = (row.dataset.number   || '').toLowerCase();
+                const customer = (row.dataset.customer || '').toLowerCase();
+                const matches  = !query || number.includes(query) || customer.includes(query);
+                row.style.display = matches ? '' : 'none';
+                if (matches) visibleCount++;
+            });
+
+            noResults.style.display = (query && visibleCount === 0) ? '' : 'none';
+        }
+    })();
+</script>
 
 </body>
 </html>

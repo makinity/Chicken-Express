@@ -13,6 +13,22 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
+        <!-- Search bar -->
+        <div class="d-flex justify-content-end mb-3">
+            <div class="input-group" style="max-width: 300px;">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" id="userSearch" class="form-control border-start-0 ps-0"
+                       placeholder="Search by name or email…"
+                       autocomplete="off"/>
+                <button class="btn btn-outline-secondary" type="button" id="clearUserSearch"
+                        style="display:none;" title="Clear">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+
         <div class="card border-0 shadow-sm">
             <div class="table-responsive">
                 <table class="table table-hover mb-0 align-middle">
@@ -26,8 +42,11 @@
                             <th class="text-end">Action</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr th:each="user : ${users}">
+                    <tbody id="userTableBody">
+                        <tr th:each="user : ${users}"
+                            data-user-row
+                            th:data-name="${user.fullName}"
+                            th:data-email="${user.email}">
                             <td class="fw-medium" th:text="${user.fullName}">Name</td>
                             <td class="small text-muted" th:text="${user.email}">email@</td>
                             <td>
@@ -54,12 +73,51 @@
                                 </form>
                             </td>
                         </tr>
+                        <tr id="noUserSearchResults" style="display:none;">
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="bi bi-search me-1"></i> No users match your search.
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
 </th:block>
+
+<script>
+    (function () {
+        const searchInput = document.getElementById('userSearch');
+        const clearBtn    = document.getElementById('clearUserSearch');
+        const tbody       = document.getElementById('userTableBody');
+        const noResults   = document.getElementById('noUserSearchResults');
+
+        searchInput.addEventListener('input', filterTable);
+        clearBtn.addEventListener('click', function () {
+            searchInput.value = '';
+            filterTable();
+            searchInput.focus();
+        });
+
+        function filterTable() {
+            const query = searchInput.value.trim().toLowerCase();
+            clearBtn.style.display = query ? 'inline-block' : 'none';
+
+            const rows = tbody.querySelectorAll('tr[data-user-row]');
+            let visibleCount = 0;
+
+            rows.forEach(function (row) {
+                const name  = (row.dataset.name  || '').toLowerCase();
+                const email = (row.dataset.email || '').toLowerCase();
+                const matches = !query || name.includes(query) || email.includes(query);
+                row.style.display = matches ? '' : 'none';
+                if (matches) visibleCount++;
+            });
+
+            noResults.style.display = (query && visibleCount === 0) ? '' : 'none';
+        }
+    })();
+</script>
 
 </body>
 </html>

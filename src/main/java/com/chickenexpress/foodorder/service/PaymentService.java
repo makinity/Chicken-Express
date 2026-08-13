@@ -7,6 +7,8 @@ import com.chickenexpress.foodorder.payment.PayMongoClient;
 import com.chickenexpress.foodorder.payment.WebhookPayloadParser;
 import com.chickenexpress.foodorder.repository.OrderRepository;
 import com.chickenexpress.foodorder.repository.PaymentRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class PaymentService {
+
+    private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
 
     private final PayMongoClient payMongoClient;
     private final WebhookPayloadParser webhookPayloadParser;
@@ -52,19 +56,31 @@ public class PaymentService {
      * @throws PaymentException if the API call fails
      */
     public String initiateCheckout(Order order) {
+        log.info("[Payment] Initiating checkout for order={} user={} amount={}",
+            order.getOrderNumber(), order.getUser().getEmail(), order.getTotalAmount());
+
         // Create a PENDING payment record
         Payment payment = new Payment(order, order.getTotalAmount());
         paymentRepository.save(payment);
+        log.info("[Payment] Created PENDING payment record id={}", payment.getId());
 
-        // Call PayMongo — returns {sessionId, checkoutUrl}
-        PayMongoClient.CheckoutSessionResult result =
-            payMongoClient.createCheckoutSession(order, payment);
+        try {
+            // Call PayMongo — returns {sessionId, checkoutUrl}
+            PayMongoClient.CheckoutSessionResult result =
+                payMongoClient.createCheckoutSession(order, payment);
 
-        // Store the session ID so we can match it when the webhook arrives
-        payment.setPaymongoSessionId(result.sessionId());
-        paymentRepository.save(payment);
+            // Store the session ID so we can match it when the webhook arrives
+            payment.setPaymongoSessionId(result.sessionId());
+            paymentRepository.save(payment);
 
-        return result.checkoutUrl();
+            log.info("[Payment] Checkout session stored. sessionId={}", result.sessionId());
+            return result.checkoutUrl();
+
+        } catch (PaymentException e) {
+            log.error("[Payment] Failed to create checkout session for order={}: {}",
+                order.getOrderNumber(), e.getMessage(), e);
+            throw e;
+        }
     }
 
     // ── Webhook Handling ─────────────────────────────────────────────────────

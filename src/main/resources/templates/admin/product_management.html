@@ -7,8 +7,20 @@
 
 <th:block th:fragment="content">
 
-    <!-- Add button -->
-    <div class="d-flex justify-content-end mb-4">
+    <!-- Toolbar: search + add button -->
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
+        <div class="input-group" style="max-width: 340px;">
+            <span class="input-group-text bg-white border-end-0">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" id="productSearch" class="form-control border-start-0 ps-0"
+                   placeholder="Search by name or category…"
+                   autocomplete="off"/>
+            <button class="btn btn-outline-secondary" type="button" id="clearSearch"
+                    style="display:none;" title="Clear">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
         <button class="btn ce-btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
             <i class="bi bi-plus-lg"></i> Add Product
         </button>
@@ -30,8 +42,11 @@
                         <th class="text-end">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr th:each="product : ${products}">
+                <tbody id="productTableBody">
+                    <tr th:each="product : ${products}"
+                        data-product-row
+                        th:data-name="${product.name}"
+                        th:data-category="${product.category.name}">
                         <td>
                             <img th:if="${product.imageUrl != null}"
                                  th:src="${product.imageUrl}"
@@ -85,6 +100,12 @@
                             No products yet.
                             <a href="#" data-bs-toggle="modal" data-bs-target="#addProductModal"
                                class="ce-link">Add the first one.</a>
+                        </td>
+                    </tr>
+                    <!-- shown by JS when search has no matches -->
+                    <tr id="noSearchResults" style="display:none;">
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="bi bi-search me-1"></i> No products match your search.
                         </td>
                     </tr>
                 </tbody>
@@ -322,9 +343,44 @@
 
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!--  Modal helper scripts                                               -->
+    <!--  Search filter script                                               -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <script>
+        (function () {
+            const searchInput  = document.getElementById('productSearch');
+            const clearBtn     = document.getElementById('clearSearch');
+            const tbody        = document.getElementById('productTableBody');
+            const noResults    = document.getElementById('noSearchResults');
+
+            searchInput.addEventListener('input', filterTable);
+            clearBtn.addEventListener('click', function () {
+                searchInput.value = '';
+                filterTable();
+                searchInput.focus();
+            });
+
+            function filterTable() {
+                const query = searchInput.value.trim().toLowerCase();
+                clearBtn.style.display = query ? 'inline-block' : 'none';
+
+                // All data rows (skip the static empty/no-results rows)
+                const rows = tbody.querySelectorAll('tr[data-product-row]');
+                let visibleCount = 0;
+
+                rows.forEach(function (row) {
+                    const name     = (row.dataset.name     || '').toLowerCase();
+                    const category = (row.dataset.category || '').toLowerCase();
+                    const matches  = !query || name.includes(query) || category.includes(query);
+                    row.style.display = matches ? '' : 'none';
+                    if (matches) visibleCount++;
+                });
+
+                noResults.style.display = (query && visibleCount === 0) ? '' : 'none';
+            }
+        })();
+    </script>
+
+</th:block>
         function openEditProductModal(btn) {
             const id         = btn.dataset.id;
             const name       = btn.dataset.name;

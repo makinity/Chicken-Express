@@ -21,6 +21,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     /** All orders placed by a specific customer, newest first. */
     List<Order> findByUserIdOrderByCreatedAtDesc(Long userId);
 
+    /** All orders, newest first — for admin order list. */
+    List<Order> findAllByOrderByCreatedAtDesc();
+
     /** Find a single order by its human-readable order number. */
     Optional<Order> findByOrderNumber(String orderNumber);
 

@@ -38,15 +38,27 @@
 
                 <div class="mb-3">
                     <label for="password" class="form-label fw-medium">Password</label>
-                    <input id="password" name="password" type="password" class="form-control"
-                           placeholder="Minimum 8 characters" minlength="8" required/>
+                    <div class="input-group">
+                        <input id="password" name="password" type="password" class="form-control"
+                               placeholder="Minimum 8 characters" minlength="8" required/>
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword"
+                                tabindex="-1" title="Show/hide password">
+                            <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="mb-4">
                     <label for="confirmPassword" class="form-label fw-medium">Confirm Password</label>
-                    <input id="confirmPassword" name="confirmPassword" type="password"
-                           class="form-control" placeholder="Repeat your password"
-                           minlength="8" required/>
+                    <div class="input-group">
+                        <input id="confirmPassword" name="confirmPassword" type="password"
+                               class="form-control" placeholder="Repeat your password"
+                               minlength="8" required/>
+                        <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword"
+                                tabindex="-1" title="Show/hide password">
+                            <i class="bi bi-eye" id="toggleConfirmPasswordIcon"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn ce-btn-primary w-100 fw-medium py-2">
@@ -66,6 +78,26 @@
 </main>
 
 <footer th:replace="~{layout/footer :: footer}"></footer>
+
+<script>
+    function togglePasswordField(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon  = document.getElementById(iconId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('bi-eye', 'bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+    }
+
+    document.getElementById('togglePassword')
+        .addEventListener('click', () => togglePasswordField('password', 'togglePasswordIcon'));
+
+    document.getElementById('toggleConfirmPassword')
+        .addEventListener('click', () => togglePasswordField('confirmPassword', 'toggleConfirmPasswordIcon'));
+</script>
 
 </body>
 </html>

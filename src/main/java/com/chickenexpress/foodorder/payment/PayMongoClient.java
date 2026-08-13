@@ -6,6 +6,8 @@ import com.chickenexpress.foodorder.entity.Payment;
 import com.chickenexpress.foodorder.exception.PaymentException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +34,8 @@ import java.util.Map;
  */
 @Component
 public class PayMongoClient {
+
+    private static final Logger log = LoggerFactory.getLogger(PayMongoClient.class);
 
     @Value("${paymongo.secret-key}")
     private String secretKey;
@@ -63,7 +67,18 @@ public class PayMongoClient {
      */
     public CheckoutSessionResult createCheckoutSession(Order order, Payment payment) {
         try {
+            log.info("[PayMongo] Creating checkout session for order={} amount={}",
+                order.getOrderNumber(), order.getTotalAmount());
+
+            // Warn early if secret key looks empty
+            if (secretKey == null || secretKey.isBlank()) {
+                log.error("[PayMongo] PAYMONGO_SECRET_KEY is not set! Check your environment variables.");
+                throw new PaymentException("PayMongo secret key is not configured. Set the PAYMONGO_SECRET_KEY environment variable.");
+            }
+
             String requestBody = buildCheckoutSessionBody(order);
+            log.debug("[PayMongo] Request body: {}", requestBody);
+
             String authHeader = "Basic " + Base64.getEncoder()
                 .encodeToString((secretKey + ":").getBytes(StandardCharsets.UTF_8));
 
@@ -74,10 +89,15 @@ public class PayMongoClient {
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build();
 
+            log.info("[PayMongo] Sending POST to {}", baseUrl + "/checkout_sessions");
             HttpResponse<String> response =
                 httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
+            log.info("[PayMongo] Response status: {}", response.statusCode());
+            log.debug("[PayMongo] Response body: {}", response.body());
+
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                log.error("[PayMongo] API error {} — Response: {}", response.statusCode(), response.body());
                 throw new PaymentException(
                     "PayMongo API error " + response.statusCode() + ": " + response.body());
             }
@@ -86,10 +106,12 @@ public class PayMongoClient {
             String sessionId = root.at("/data/id").asText();
             String checkoutUrl = root.at("/data/attributes/checkout_url").asText();
 
+            log.info("[PayMongo] Checkout session created. sessionId={} url={}", sessionId, checkoutUrl);
             return new CheckoutSessionResult(sessionId, checkoutUrl);
 
         } catch (IOException | InterruptedException e) {
             Thread.currentThread().interrupt();
+            log.error("[PayMongo] Network error while creating checkout session", e);
             throw new PaymentException("Failed to create PayMongo checkout session: " + e.getMessage());
         }
     }
