@@ -4,9 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
@@ -19,6 +23,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/chat")
 public class ChatbotController {
+
+    private static final Logger log = LoggerFactory.getLogger(ChatbotController.class);
 
     @Value("${groq.api-key:}")
     private String apiKey;
@@ -77,8 +83,10 @@ public class ChatbotController {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(apiKey);
 
-            HttpEntity<String> request = new HttpEntity<>(
-                    objectMapper.writeValueAsString(requestBody), headers);
+            String jsonBody = objectMapper.writeValueAsString(requestBody);
+            log.debug("Calling Groq API: url={} model={}", apiUrl, model);
+
+            HttpEntity<String> request = new HttpEntity<>(jsonBody, headers);
 
             // Call Groq
             ResponseEntity<String> response = restTemplate.exchange(
@@ -93,9 +101,25 @@ public class ChatbotController {
 
             return ResponseEntity.ok(Map.of("reply", reply));
 
-        } catch (Exception e) {
+        } catch (HttpClientErrorException e) {
+            log.error("Groq API client error {}: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            String msg = switch (e.getStatusCode().value()) {
+                case 401 -> "Invalid API key. Please check your GROQ_API_KEY configuration.";
+                case 429 -> "Rate limit reached. Please wait a moment and try again.";
+                case 400 -> "Bad request to Groq API: " + e.getResponseBodyAsString();
+                default  -> "Groq API error (" + e.getStatusCode() + "). Please try again.";
+            };
+            return ResponseEntity.ok(Map.of("reply", msg));
+
+        } catch (HttpServerErrorException e) {
+            log.error("Groq API server error {}: {}", e.getStatusCode(), e.getResponseBodyAsString());
             return ResponseEntity.ok(Map.of("reply",
-                "Sorry, I'm having trouble connecting right now. Please try again shortly."));
+                "The AI service is temporarily unavailable. Please try again shortly."));
+
+        } catch (Exception e) {
+            log.error("Unexpected error calling Groq API: {}", e.getMessage(), e);
+            return ResponseEntity.ok(Map.of("reply",
+                "Sorry, something went wrong: " + e.getMessage()));
         }
     }
 }
