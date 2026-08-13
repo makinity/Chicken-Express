@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/admin-layout :: adminHead}">
+    <title>Users — Admin | ChickenExpress</title>
+</head>
+<body th:replace="~{layout/admin-layout :: adminBody('Users')}">
+
+<th:block th:fragment="content">
+
+        <!-- Flash -->
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show">
+            <span th:text="${message}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Registered</th>
+                            <th>Status</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="user : ${users}">
+                            <td class="fw-medium" th:text="${user.fullName}">Name</td>
+                            <td class="small text-muted" th:text="${user.email}">email@</td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${user.role == 'ROLE_ADMIN'} ? 'ce-badge-primary' : 'bg-secondary'"
+                                      th:text="${user.role == 'ROLE_ADMIN'} ? 'Admin' : 'Customer'">Role</span>
+                            </td>
+                            <td class="small text-muted"
+                                th:text="${#temporals.format(user.createdAt,'MMM d, yyyy')}">Jan 1, 2024</td>
+                            <td>
+                                <span th:if="${user.enabled}" class="badge bg-success">Active</span>
+                                <span th:unless="${user.enabled}" class="badge bg-danger">Disabled</span>
+                            </td>
+                            <td class="text-end">
+                                <form th:action="@{/admin/users/{id}/toggle-enabled(id=${user.id})}"
+                                      method="post" class="d-inline">
+                                    <input type="hidden" th:name="${_csrf.parameterName}"
+                                           th:value="${_csrf.token}"/>
+                                    <button type="submit"
+                                            th:classappend="${user.enabled} ? 'btn-outline-danger' : 'btn-outline-success'"
+                                            class="btn btn-sm">
+                                        <span th:text="${user.enabled} ? 'Deactivate' : 'Activate'">Toggle</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+</th:block>
+
+</body>
+</html>

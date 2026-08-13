@@ -1,0 +1,67 @@
+/*
+ * ChickenExpress — Customer Stylesheet
+ * Styles for the customer-facing pages (menu, cart, checkout, etc.)
+ * Imports theme variables from theme.css.
+ */
+
+/* ── Product Cards ─────────────────────────────────────────────────────── */
+
+.ce-product-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ce-product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Product image wrapper */
+.ce-product-img-wrapper {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--surface-alt);
+}
+
+.ce-product-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+
+/* Placeholder when no image is set */
+.ce-product-img-placeholder {
+    width: 100%;
+    height: 200px;
+    background-color: var(--primary-light);
+}
+
+/* ── Cart ──────────────────────────────────────────────────────────────── */
+
+/* Remove Bootstrap's default table-hover row highlight inside the cart
+   so our custom hover doesn't compete. */
+.ce-cart-table tbody tr:hover {
+    background-color: rgba(99, 153, 34, 0.05);
+}
+
+/* ── Checkout ──────────────────────────────────────────────────────────── */
+
+/* Subtle hover on order-type radio labels */
+.form-check:hover .form-check-label {
+    color: var(--primary);
+    cursor: pointer;
+}
+
+/* ── Order History ─────────────────────────────────────────────────────── */
+
+.fw-mono {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.85rem;
+}
+
+/* ── Success / Cancel pages ────────────────────────────────────────────── */
+
+.ce-success-icon {
+    font-size: 5rem;
+    color: #198754; /* Bootstrap success green */
+}

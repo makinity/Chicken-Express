@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/header :: head}">
+    <title th:text="'Error ' + ${status} + ' — ChickenExpress'">Error — ChickenExpress</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav th:replace="~{layout/header :: navbar}"></nav>
+
+<main class="flex-grow-1 d-flex align-items-center justify-content-center py-5">
+    <div class="text-center">
+        <div class="display-1 fw-bold ce-color-danger" th:text="${status ?: '?'}">500</div>
+        <h1 class="h3 mt-2 mb-3" th:text="${message ?: 'An unexpected error occurred.'}">
+            Something went wrong.
+        </h1>
+        <p class="text-muted" th:if="${status == 404}">
+            The page you're looking for doesn't exist or has been moved.
+        </p>
+        <div class="mt-4 d-flex gap-3 justify-content-center">
+            <a th:href="@{/}" class="btn ce-btn-primary">
+                <i class="bi bi-house"></i> Go Home
+            </a>
+            <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Go Back
+            </a>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{layout/footer :: footer}"></footer>
+
+</body>
+</html>

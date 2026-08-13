@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/header :: head}">
+    <title>Payment Successful — ChickenExpress</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav th:replace="~{layout/header :: navbar}"></nav>
+
+<main class="flex-grow-1 d-flex align-items-center justify-content-center py-5">
+    <div class="text-center">
+        <div class="display-1 mb-3">🎉</div>
+        <h1 class="h2 fw-bold text-success">Payment Successful!</h1>
+        <p class="text-muted">Your order has been placed and is now being prepared.</p>
+
+        <div th:if="${orderId}" class="alert ce-alert-primary d-inline-block px-5 mt-2">
+            Order Reference: <strong th:text="${orderId}">—</strong>
+        </div>
+
+        <div class="mt-4 d-flex gap-3 justify-content-center">
+            <a th:href="@{/orders}" class="btn ce-btn-primary">
+                <i class="bi bi-receipt"></i> View My Orders
+            </a>
+            <a th:href="@{/menu}" class="btn btn-outline-secondary">
+                Order Again
+            </a>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{layout/footer :: footer}"></footer>
+
+</body>
+</html>

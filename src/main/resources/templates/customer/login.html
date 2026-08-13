@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/header :: head}">
+    <title>Login — ChickenExpress</title>
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+<nav th:replace="~{layout/header :: navbar}"></nav>
+
+<main class="flex-grow-1 d-flex align-items-center justify-content-center py-5">
+    <div class="card shadow-sm border-0" style="width: 100%; max-width: 420px;">
+        <div class="card-body p-4 p-md-5">
+
+            <div class="text-center mb-4">
+                <i class="bi bi-egg-fried display-4 ce-color-primary"></i>
+                <h1 class="h3 mt-2 fw-bold">Welcome back!</h1>
+                <p class="text-muted small">Sign in to your ChickenExpress account</p>
+            </div>
+
+            <!-- Alert messages -->
+            <div th:if="${error}" class="alert alert-danger py-2 small" th:text="${error}"></div>
+            <div th:if="${message}" class="alert alert-success py-2 small" th:text="${message}"></div>
+
+            <!-- Login form — Spring Security processes POST /login -->
+            <form action="/login" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-medium">Email address</label>
+                    <input id="email" name="email" type="email" class="form-control"
+                           placeholder="you@example.com" autofocus required/>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label fw-medium">Password</label>
+                    <input id="password" name="password" type="password" class="form-control"
+                           placeholder="••••••••" required/>
+                </div>
+
+                <button type="submit" class="btn ce-btn-primary w-100 fw-medium py-2">
+                    Sign In
+                </button>
+            </form>
+
+            <hr class="my-4"/>
+
+            <p class="text-center small mb-0">
+                Don't have an account?
+                <a th:href="@{/register}" class="ce-link fw-medium">Create one</a>
+            </p>
+
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{layout/footer :: footer}"></footer>
+
+</body>
+</html>

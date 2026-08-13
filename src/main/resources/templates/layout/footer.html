@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="footer">
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!--  FOOTER                                                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<footer class="ce-footer mt-auto py-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+                <span class="fw-bold"><i class="bi bi-egg-fried"></i> ChickenExpress</span>
+                <span class="text-muted ms-2">&mdash; Fresh, Crispy &amp; Delicious</span>
+            </div>
+            <div class="col-md-6 text-center text-md-end text-muted small">
+                &copy; <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2024</span>
+                ChickenExpress. All rights reserved.
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap 5 JS bundle (local) -->
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+
+<!-- ── Chatbot floating button + container ───────────────────────────────── -->
+
+<!-- Floating trigger button -->
+<button id="ce-chatbot-btn"
+        class="ce-chatbot-btn"
+        aria-label="Open chat assistant"
+        aria-expanded="false"
+        title="Chat with us">
+    <i class="bi bi-chat-dots-fill ce-chatbot-icon-open"></i>
+    <i class="bi bi-x-lg ce-chatbot-icon-close"></i>
+</button>
+
+<!-- Chat container -->
+<div id="ce-chatbot-container" class="ce-chatbot-container" role="dialog"
+     aria-label="ChickenExpress Chat Assistant" aria-modal="false">
+
+    <!-- Header -->
+    <div class="ce-chatbot-header">
+        <div class="d-flex align-items-center gap-2">
+            <span class="ce-chatbot-avatar">🍗</span>
+            <div>
+                <div class="fw-bold small lh-1">ChickenExpress</div>
+                <div class="opacity-75" style="font-size:.7rem;">AI Assistant</div>
+            </div>
+        </div>
+        <button id="ce-chatbot-close" class="ce-chatbot-close-btn"
+                aria-label="Close chat">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <!-- Messages area -->
+    <div id="ce-chatbot-messages" class="ce-chatbot-messages"></div>
+
+    <!-- Input form -->
+    <form id="ce-chatbot-form" class="ce-chatbot-form" autocomplete="off">
+        <input id="ce-chatbot-input"
+               type="text"
+               class="ce-chatbot-input"
+               placeholder="Ask about our menu..."
+               maxlength="500"
+               aria-label="Chat message"/>
+        <button type="submit" class="ce-chatbot-send-btn" aria-label="Send">
+            <i class="bi bi-send-fill"></i>
+        </button>
+    </form>
+
+</div>
+
+<!-- Chatbot UI script -->
+<script th:src="@{/js/chatbot.js}"></script>
+
+<!-- Page-specific scripts (optional) -->
+<th:block th:if="${extraJs}">
+    <script th:src="${extraJs}"></script>
+</th:block>
+
+</th:block>
+
+</body>
+</html>

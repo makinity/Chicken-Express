@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/header :: head}">
+    <title>Checkout — ChickenExpress</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav th:replace="~{layout/header :: navbar}"></nav>
+
+<main class="flex-grow-1 py-4">
+    <div class="container" style="max-width: 680px;">
+        <h1 class="h2 fw-bold mb-4"><i class="bi bi-bag-check"></i> Checkout</h1>
+
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+
+                <form th:action="@{/checkout}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                    <!-- Order Type -->
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">Order Type</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="orderType"
+                                       id="takeout" value="TAKEOUT" checked/>
+                                <label class="form-check-label" for="takeout">
+                                    <i class="bi bi-bag"></i> Takeout
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="orderType"
+                                       id="dinein" value="DINE_IN"/>
+                                <label class="form-check-label" for="dinein">
+                                    <i class="bi bi-table"></i> Dine In
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="orderType"
+                                       id="delivery" value="DELIVERY"/>
+                                <label class="form-check-label" for="delivery">
+                                    <i class="bi bi-bicycle"></i> Delivery
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delivery Address (shown only for delivery) -->
+                    <div class="mb-3" id="deliveryAddressBlock" style="display:none;">
+                        <label for="deliveryAddress" class="form-label fw-medium">
+                            Delivery Address
+                        </label>
+                        <input id="deliveryAddress" name="deliveryAddress" type="text"
+                               class="form-control"
+                               th:value="${user?.address}"
+                               placeholder="Enter full delivery address"/>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-4">
+                        <label for="notes" class="form-label fw-medium">
+                            Special Instructions <span class="text-muted fw-normal">(optional)</span>
+                        </label>
+                        <textarea id="notes" name="notes" class="form-control" rows="2"
+                                  placeholder="Allergies, sauce preferences, etc."></textarea>
+                    </div>
+
+                    <!-- Customer info summary -->
+                    <div class="alert ce-alert-primary mb-4">
+                        <i class="bi bi-person-check"></i>
+                        <strong th:text="${user?.fullName}">Name</strong> &mdash;
+                        <span th:text="${user?.email}">email</span>
+                    </div>
+
+                    <button type="submit" class="btn ce-btn-primary w-100 py-2 fw-medium fs-5">
+                        <i class="bi bi-credit-card"></i> Pay with PayMongo
+                    </button>
+
+                    <p class="text-center text-muted small mt-3 mb-0">
+                        You'll be redirected to PayMongo's secure payment page.
+                        Accepted: Visa/Mastercard, GCash, GrabPay, Maya.
+                    </p>
+                </form>
+
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <a th:href="@{/cart}" class="ce-link small">
+                <i class="bi bi-arrow-left"></i> Back to cart
+            </a>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{layout/footer :: footer}"></footer>
+
+<!-- Show/hide delivery address based on order type selection -->
+<script>
+    document.querySelectorAll('input[name="orderType"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            const block = document.getElementById('deliveryAddressBlock');
+            block.style.display = radio.value === 'DELIVERY' ? 'block' : 'none';
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ChickenExpress — Fresh, Crispy & Delicious</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+
+    <style>
+        /* ── Brand Colors ──────────────────────────────────────────── */
+        :root {
+            --primary:       #639922;
+            --primary-light: #EAF3DE;
+            --primary-dark:  #3B6D11;
+            --accent:        #EF9F27;
+            --accent-light:  #FAEEDA;
+            --danger:        #E24B4A;
+        }
+
+        /* ── Navbar ────────────────────────────────────────────────── */
+        .ce-navbar {
+            background-color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,.18);
+        }
+        .ce-navbar .navbar-brand,
+        .ce-navbar .nav-link { color: rgba(255,255,255,.95) !important; }
+        .ce-navbar .nav-link:hover { background: rgba(255,255,255,.12); border-radius: .375rem; }
+        .ce-navbar .navbar-toggler-icon { filter: invert(1); }
+
+        /* ── Buttons ───────────────────────────────────────────────── */
+        .ce-btn { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .ce-btn:hover { background: var(--primary-dark); border-color: var(--primary-dark); color: #fff; }
+        .ce-btn-outline { border: 2px solid #fff; color: #fff; background: transparent; }
+        .ce-btn-outline:hover { background: #fff; color: var(--primary); }
+
+        /* ── Carousel ──────────────────────────────────────────────── */
+        .ce-carousel { position: relative; }
+
+        /* Slide 1 — Fried Chicken Launch */
+        .ce-slide-1 {
+            background: linear-gradient(120deg, #2d5a0e 0%, #4a8a1a 50%, #639922 100%);
+            min-height: 520px;
+        }
+        /* Slide 2 — GCash/Pay Promo */
+        .ce-slide-2 {
+            background: linear-gradient(120deg, #7a3a00 0%, #c46800 50%, #EF9F27 100%);
+            min-height: 520px;
+        }
+        /* Slide 3 — Family Bundle */
+        .ce-slide-3 {
+            background: linear-gradient(120deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 520px;
+        }
+
+        .ce-slide-content {
+            min-height: 520px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Floating food emoji illustration */
+        .ce-hero-illustration {
+            font-size: 10rem;
+            line-height: 1;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,.35));
+            animation: float 3s ease-in-out infinite;
+            user-select: none;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px);   }
+            50%       { transform: translateY(-16px); }
+        }
+
+        /* Carousel indicator dots */
+        .carousel-indicators [data-bs-target] {
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,.5);
+            border: none;
+        }
+        .carousel-indicators .active { background-color: #fff; }
+
+        /* Carousel arrow buttons */
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+            background-color: rgba(0,0,0,.3);
+            border-radius: 50%;
+            padding: 1.2rem;
+            background-size: 60%;
+        }
+
+        /* Promo badge */
+        .ce-promo-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: #412402;
+            font-weight: 700;
+            font-size: .75rem;
+            padding: .3rem .75rem;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: .75rem;
+        }
+        .ce-promo-badge-blue {
+            background: #4fc3f7;
+            color: #003d5b;
+        }
+
+        /* ── Popular Strip ─────────────────────────────────────────── */
+        .ce-popular-strip {
+            background: var(--primary-light);
+            border-top: 3px solid var(--primary);
+            border-bottom: 3px solid var(--primary);
+        }
+
+        /* ── Section headings ──────────────────────────────────────── */
+        .ce-section-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+        }
+        .ce-section-title span { color: var(--primary); }
+
+        /* ── Product cards ─────────────────────────────────────────── */
+        .ce-product-card {
+            transition: transform .15s, box-shadow .15s;
+            border-radius: .75rem;
+            overflow: hidden;
+        }
+        .ce-product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 28px rgba(0,0,0,.14) !important;
+        }
+        .ce-product-img {
+            height: 190px;
+            object-fit: cover;
+            background: var(--primary-light);
+            font-size: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ce-badge-popular { background: var(--accent); color: #412402; font-size: .7rem; }
+        .ce-badge-spicy   { background: var(--danger); color: #fff;    font-size: .7rem; }
+        .ce-price { color: var(--primary); font-size: 1.2rem; font-weight: 700; }
+
+        /* ── Category pills ────────────────────────────────────────── */
+        .ce-cat-pill {
+            background: #fff;
+            border: 2px solid var(--primary-light);
+            border-radius: .75rem;
+            transition: all .15s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        .ce-cat-pill:hover, .ce-cat-pill.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff !important;
+        }
+        .ce-cat-pill .ce-cat-emoji { font-size: 2rem; }
+
+        /* ── Why ChickenExpress ────────────────────────────────────── */
+        .ce-why-card {
+            border-radius: .75rem;
+            border: 2px solid var(--primary-light);
+        }
+        .ce-why-icon { font-size: 2.5rem; color: var(--primary); }
+
+        /* ── Footer ────────────────────────────────────────────────── */
+        .ce-footer {
+            background: var(--primary-dark);
+            color: rgba(255,255,255,.85);
+        }
+        .ce-footer a { color: rgba(255,255,255,.7); text-decoration: none; }
+        .ce-footer a:hover { color: #fff; }
+
+        /* ── Scroll-to-top hint ────────────────────────────────────── */
+        .ce-scroll-hint {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,.6);
+            font-size: .8rem;
+            animation: bounce 1.5s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50%       { transform: translateX(-50%) translateY(6px); }
+        }
+    </style>
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+<!-- ═══════════════════════════════════════════════════════════════
+     NAVBAR
+═══════════════════════════════════════════════════════════════ -->
+<nav class="navbar navbar-expand-lg sticky-top ce-navbar">
+    <div class="container">
+        <a class="navbar-brand fw-bold fs-4" href="#">
+            🍗 ChickenExpress
+        </a>
+        <button class="navbar-toggler border-0" type="button"
+                data-bs-toggle="collapse" data-bs-target="#navMain">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link px-3" href="#menu">
+                        <i class="bi bi-grid-3x3-gap"></i> Menu
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-3" href="#promos">
+                        <i class="bi bi-tags"></i> Promos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-3" href="#about">
+                        <i class="bi bi-info-circle"></i> About
+                    </a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="bi bi-cart3 fs-5"></i>
+                        <span class="badge rounded-pill bg-danger ms-1">3</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn ce-btn-outline rounded-pill px-3 py-1 fw-medium" href="#">
+                        Login
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-light rounded-pill px-3 py-1 fw-bold text-success" href="#"
+                       style="color: var(--primary) !important;">
+                        Sign Up
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     HERO CAROUSEL
+═══════════════════════════════════════════════════════════════ -->
+<section class="ce-carousel" id="home">
+    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel"
+         data-bs-interval="4500">
+
+        <!-- Indicators -->
+        <div class="carousel-indicators mb-4">
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
+        </div>
+
+        <div class="carousel-inner">
+
+            <!-- ── Slide 1: Main Brand ── -->
+            <div class="carousel-item active ce-slide-1">
+                <div class="container ce-slide-content py-5">
+                    <div class="row align-items-center g-4">
+                        <div class="col-lg-7 text-white">
+                            <div class="ce-promo-badge">
+                                🔥 Now Open for Delivery
+                            </div>
+                            <h1 class="display-3 fw-black lh-1 mb-3"
+                                style="font-weight:900; text-shadow:0 3px 12px rgba(0,0,0,.3);">
+                                Crispy. Juicy.<br>
+                                <span style="color:#d4f090;">Unforgettable.</span>
+                            </h1>
+                            <p class="lead mb-4 opacity-90">
+                                The freshest fried chicken in town — golden-crispy outside,
+                                tender and juicy inside. Order now and get it delivered to your door.
+                            </p>
+                            <div class="d-flex flex-wrap gap-3">
+                                <a href="#menu" class="btn btn-light btn-lg fw-bold px-4 py-2"
+                                   style="color: var(--primary);">
+                                    <i class="bi bi-grid-3x3-gap me-2"></i>Browse Menu
+                                </a>
+                                <a href="#" class="btn ce-btn-outline btn-lg px-4 py-2">
+                                    <i class="bi bi-bag-check me-2"></i>Order Now
+                                </a>
+                            </div>
+                            <div class="mt-4 d-flex gap-4 text-white opacity-75 small">
+                                <span><i class="bi bi-check-circle-fill me-1"></i>Free delivery ₱500+</span>
+                                <span><i class="bi bi-check-circle-fill me-1"></i>GCash accepted</span>
+                                <span><i class="bi bi-check-circle-fill me-1"></i>Open daily</span>
+                            </div>
+                        </div>
+                        <div class="col-lg-5 text-center d-none d-lg-block">
+                            <div class="ce-hero-illustration">🍗</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ce-scroll-hint">
+                    <i class="bi bi-chevron-double-down d-block"></i>
+                    scroll
+                </div>
+            </div>
+
+            <!-- ── Slide 2: Promo / Discount ── -->
+            <div class="carousel-item ce-slide-2">
+                <div class="container ce-slide-content py-5">
+                    <div class="row align-items-center g-4">
+                        <div class="col-lg-7 text-white">
+                            <div class="ce-promo-badge" style="background:#fff3; color:#fff;">
+                                ⚡ Limited Time Only
+                            </div>
+                            <h1 class="display-3 fw-black lh-1 mb-3"
+                                style="font-weight:900; text-shadow:0 3px 12px rgba(0,0,0,.3);">
+                                Combo Deal<br>
+                                <span style="color:#fff3cd;">Only ₱199</span>
+                            </h1>
+                            <p class="lead mb-4 opacity-90">
+                                2-pc Fried Chicken + Garlic Rice + Iced Tea.
+                                Perfect for lunch or dinner. Today only!
+                            </p>
+                            <div class="d-flex flex-wrap gap-3 align-items-center">
+                                <a href="#menu" class="btn btn-light btn-lg fw-bold px-4 py-2"
+                                   style="color: #7a3a00;">
+                                    <i class="bi bi-lightning-charge-fill me-2"></i>Grab This Deal
+                                </a>
+                                <div class="text-white opacity-75">
+                                    <span class="text-decoration-line-through me-2 fs-5">₱280</span>
+                                    <span class="fs-4 fw-bold" style="color:#fff3cd;">₱199</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 d-flex gap-3 small text-white opacity-75">
+                                <span><i class="bi bi-clock me-1"></i>Valid until midnight</span>
+                                <span><i class="bi bi-phone me-1"></i>Dine-in & Takeout</span>
+                            </div>
+                        </div>
+                        <div class="col-lg-5 text-center d-none d-lg-block">
+                            <div class="ce-hero-illustration">🍱</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Slide 3: Family Bundle ── -->
+            <div class="carousel-item ce-slide-3">
+                <div class="container ce-slide-content py-5">
+                    <div class="row align-items-center g-4">
+                        <div class="col-lg-7 text-white">
+                            <div class="ce-promo-badge ce-promo-badge-blue">
+                                👨‍👩‍👧‍👦 Family Meal
+                            </div>
+                            <h1 class="display-3 fw-black lh-1 mb-3"
+                                style="font-weight:900; text-shadow:0 3px 12px rgba(0,0,0,.3);">
+                                Feed the<br>
+                                <span style="color:#4fc3f7;">Whole Family</span>
+                            </h1>
+                            <p class="lead mb-4 opacity-90">
+                                8-pc Bucket + 4 Rice + 4 Drinks + 2 Sides.
+                                Enough for everyone at the table. Starting at ₱849.
+                            </p>
+                            <div class="d-flex flex-wrap gap-3">
+                                <a href="#menu" class="btn btn-light btn-lg fw-bold px-4 py-2"
+                                   style="color: #003d5b;">
+                                    <i class="bi bi-basket2-fill me-2"></i>Order Family Bundle
+                                </a>
+                                <a href="#" class="btn ce-btn-outline btn-lg px-4 py-2">
+                                    See All Bundles
+                                </a>
+                            </div>
+                            <div class="mt-4 small text-white opacity-75">
+                                <i class="bi bi-truck me-1"></i>Free delivery for family orders • Serves 4–6 pax
+                            </div>
+                        </div>
+                        <div class="col-lg-5 text-center d-none d-lg-block">
+                            <div class="ce-hero-illustration">🪣</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /.carousel-inner -->
+
+        <!-- Controls -->
+        <button class="carousel-control-prev" type="button"
+                data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button"
+                data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+        </button>
+
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     POPULAR STRIP (scrolling badges)
+═══════════════════════════════════════════════════════════════ -->
+<div class="ce-popular-strip py-3">
+    <div class="container">
+        <div class="d-flex flex-wrap gap-3 align-items-center justify-content-center">
+            <span class="fw-bold text-success me-2">
+                <i class="bi bi-fire"></i> What's Hot:
+            </span>
+            <span class="badge rounded-pill px-3 py-2 bg-success fs-6">🍗 Fried Chicken</span>
+            <span class="badge rounded-pill px-3 py-2 bg-warning text-dark fs-6">🌶 Spicy Wings</span>
+            <span class="badge rounded-pill px-3 py-2 bg-success fs-6">🍱 Combo Meals</span>
+            <span class="badge rounded-pill px-3 py-2 bg-warning text-dark fs-6">🪣 Family Bucket</span>
+            <span class="badge rounded-pill px-3 py-2 bg-success fs-6">🍟 Crispy Fries</span>
+            <span class="badge rounded-pill px-3 py-2 bg-secondary fs-6">🧊 Iced Tea</span>
+        </div>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CATEGORY QUICK-LINKS
+═══════════════════════════════════════════════════════════════ -->
+<section class="py-5 bg-white" id="menu">
+    <div class="container">
+        <h2 class="ce-section-title text-center mb-2">
+            Browse by <span>Category</span>
+        </h2>
+        <p class="text-center text-muted mb-4">
+            What are you craving today?
+        </p>
+
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-3 justify-content-center">
+
+            <div class="col">
+                <a href="#" class="ce-cat-pill d-flex flex-column align-items-center p-3 text-center text-decoration-none active">
+                    <div class="ce-cat-emoji">🍗</div>
+                    <div class="fw-semibold mt-2 small">Chicken Meals</div>
+                </a>
+            </div>
+            <div class="col">
+                <a href="#" class="ce-cat-pill d-flex flex-column align-items-center p-3 text-center text-decoration-none">
+                    <div class="ce-cat-emoji">🍱</div>
+                    <div class="fw-semibold mt-2 small">Combos</div>
+                </a>
+            </div>
+            <div class="col">
+                <a href="#" class="ce-cat-pill d-flex flex-column align-items-center p-3 text-center text-decoration-none">
+                    <div class="ce-cat-emoji">🍟</div>
+                    <div class="fw-semibold mt-2 small">Sides</div>
+                </a>
+            </div>
+            <div class="col">
+                <a href="#" class="ce-cat-pill d-flex flex-column align-items-center p-3 text-center text-decoration-none">
+                    <div class="ce-cat-emoji">🧃</div>
+                    <div class="fw-semibold mt-2 small">Drinks</div>
+                </a>
+            </div>
+            <div class="col">
+                <a href="#" class="ce-cat-pill d-flex flex-column align-items-center p-3 text-center text-decoration-none">
+                    <div class="ce-cat-emoji">🍨</div>
+                    <div class="fw-semibold mt-2 small">Desserts</div>
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     POPULAR ITEMS
+═══════════════════════════════════════════════════════════════ -->
+<section class="py-5" style="background: var(--primary-light);">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h2 class="ce-section-title mb-0">
+                <i class="bi bi-star-fill" style="color:var(--accent);"></i>
+                Popular <span>Right Now</span>
+            </h2>
+            <a href="#" class="btn ce-btn px-4 rounded-pill">
+                View Full Menu <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
+
+            <!-- Card 1 -->
+            <div class="col">
+                <div class="card ce-product-card h-100 border-0 shadow-sm">
+                    <div class="ce-product-img bg-warning bg-opacity-25 d-flex align-items-center justify-content-center"
+                         style="height:190px; font-size:5rem;">
+                        🍗
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex gap-1 mb-2">
+                            <span class="badge ce-badge-popular rounded-pill px-2">⭐ Popular</span>
+                            <span class="badge ce-badge-spicy rounded-pill px-2">🌶 Spicy</span>
+                        </div>
+                        <h5 class="fw-bold mb-1">Spicy Fried Chicken (2pc)</h5>
+                        <p class="text-muted small mb-3">Golden crispy with a fiery kick. Served with gravy.</p>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="ce-price">₱149.00</span>
+                            <button class="btn btn-sm ce-btn px-3 rounded-pill">
+                                <i class="bi bi-cart-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="col">
+                <div class="card ce-product-card h-100 border-0 shadow-sm">
+                    <div class="ce-product-img d-flex align-items-center justify-content-center"
+                         style="height:190px; font-size:5rem; background: #e8f5e9;">
+                        🍱
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex gap-1 mb-2">
+                            <span class="badge ce-badge-popular rounded-pill px-2">⭐ Popular</span>
+                        </div>
+                        <h5 class="fw-bold mb-1">Chicken + Rice + Drink</h5>
+                        <p class="text-muted small mb-3">Classic combo. 1pc chicken, garlic rice, and iced tea.</p>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="ce-price">₱199.00</span>
+                            <button class="btn btn-sm ce-btn px-3 rounded-pill">
+                                <i class="bi bi-cart-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="col">
+                <div class="card ce-product-card h-100 border-0 shadow-sm">
+                    <div class="ce-product-img d-flex align-items-center justify-content-center"
+                         style="height:190px; font-size:5rem; background: #fff3e0;">
+                        🪣
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex gap-1 mb-2">
+                            <span class="badge ce-badge-popular rounded-pill px-2">⭐ Popular</span>
+                        </div>
+                        <h5 class="fw-bold mb-1">Family Bucket (8pc)</h5>
+                        <p class="text-muted small mb-3">Eight pieces of our signature fried chicken. Feeds 4–6.</p>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="ce-price">₱849.00</span>
+                            <button class="btn btn-sm ce-btn px-3 rounded-pill">
+                                <i class="bi bi-cart-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="col">
+                <div class="card ce-product-card h-100 border-0 shadow-sm">
+                    <div class="ce-product-img d-flex align-items-center justify-content-center"
+                         style="height:190px; font-size:5rem; background: #fce4ec;">
+                        🍟
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex gap-1 mb-2">
+                            <span class="badge bg-info text-dark rounded-pill px-2 small">New</span>
+                        </div>
+                        <h5 class="fw-bold mb-1">Crispy Fries (L)</h5>
+                        <p class="text-muted small mb-3">Extra thick-cut fries, perfectly seasoned and super crispy.</p>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="ce-price">₱79.00</span>
+                            <button class="btn btn-sm ce-btn px-3 rounded-pill">
+                                <i class="bi bi-cart-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     WHY CHICKENEXPRESS
+═══════════════════════════════════════════════════════════════ -->
+<section class="py-5 bg-white" id="about">
+    <div class="container">
+        <h2 class="ce-section-title text-center mb-2">
+            Why <span>ChickenExpress?</span>
+        </h2>
+        <p class="text-center text-muted mb-5">
+            We're not just another chicken place.
+        </p>
+
+        <div class="row g-4 text-center">
+            <div class="col-md-3 col-sm-6">
+                <div class="ce-why-card p-4 h-100">
+                    <div class="ce-why-icon mb-3">🔥</div>
+                    <h5 class="fw-bold">Always Fresh</h5>
+                    <p class="text-muted small">Cooked to order every time. No reheated meals.</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="ce-why-card p-4 h-100">
+                    <div class="ce-why-icon mb-3">⚡</div>
+                    <h5 class="fw-bold">Fast Service</h5>
+                    <p class="text-muted small">Order online, skip the queue. Ready in minutes.</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="ce-why-card p-4 h-100">
+                    <div class="ce-why-icon mb-3">💳</div>
+                    <h5 class="fw-bold">Easy Payment</h5>
+                    <p class="text-muted small">Pay with GCash, GrabPay, Maya, or card — hassle-free.</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="ce-why-card p-4 h-100">
+                    <div class="ce-why-icon mb-3">🚚</div>
+                    <h5 class="fw-bold">Delivery Available</h5>
+                    <p class="text-muted small">Free delivery on orders ₱500 and above.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CTA BANNER
+═══════════════════════════════════════════════════════════════ -->
+<section class="py-5 text-white text-center"
+         style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);"
+         id="promos">
+    <div class="container">
+        <div class="display-4 mb-3">🍗</div>
+        <h2 class="fw-black display-5 mb-3">Ready to Order?</h2>
+        <p class="lead mb-4 opacity-90">
+            Fresh chicken is just a few clicks away. Dine-in, takeout, or delivery.
+        </p>
+        <div class="d-flex flex-wrap gap-3 justify-content-center">
+            <a href="#" class="btn btn-light btn-lg fw-bold px-5 py-3 rounded-pill"
+               style="color: var(--primary);">
+                <i class="bi bi-bag-check-fill me-2"></i>Order Now
+            </a>
+            <a href="#menu" class="btn ce-btn-outline btn-lg px-5 py-3 rounded-pill">
+                <i class="bi bi-grid-3x3-gap me-2"></i>Browse Menu
+            </a>
+        </div>
+        <p class="mt-4 opacity-75 small">
+            <i class="bi bi-shield-check me-1"></i>Secure payments via PayMongo &nbsp;|&nbsp;
+            <i class="bi bi-clock me-1"></i>Open daily 10AM – 10PM
+        </p>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════════════ -->
+<footer class="ce-footer py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="fw-bold fs-5 mb-2">🍗 ChickenExpress</div>
+                <p class="opacity-75 small">
+                    Your go-to chicken restaurant for fresh, crispy, and affordable
+                    chicken meals. Order online or visit us in store.
+                </p>
+            </div>
+            <div class="col-md-2">
+                <div class="fw-semibold mb-3">Quick Links</div>
+                <ul class="list-unstyled small">
+                    <li class="mb-1"><a href="#">Home</a></li>
+                    <li class="mb-1"><a href="#menu">Menu</a></li>
+                    <li class="mb-1"><a href="#">My Orders</a></li>
+                    <li class="mb-1"><a href="#">Login</a></li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <div class="fw-semibold mb-3">Contact</div>
+                <ul class="list-unstyled small opacity-75">
+                    <li class="mb-1"><i class="bi bi-geo-alt me-2"></i>123 Chicken St., Manila</li>
+                    <li class="mb-1"><i class="bi bi-telephone me-2"></i>+63 900 000 0000</li>
+                    <li class="mb-1"><i class="bi bi-envelope me-2"></i>hello@chickenexpress.com</li>
+                    <li class="mb-1"><i class="bi bi-clock me-2"></i>Daily 10AM – 10PM</li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <div class="fw-semibold mb-3">We Accept</div>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge bg-light text-dark px-2 py-1">💳 Card</span>
+                    <span class="badge bg-light text-dark px-2 py-1">📱 GCash</span>
+                    <span class="badge bg-light text-dark px-2 py-1">🚗 GrabPay</span>
+                    <span class="badge bg-light text-dark px-2 py-1">💜 Maya</span>
+                </div>
+                <div class="mt-3 d-flex gap-3">
+                    <a href="#" class="fs-4"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="fs-4"><i class="bi bi-instagram"></i></a>
+                    <a href="#" class="fs-4"><i class="bi bi-tiktok"></i></a>
+                </div>
+            </div>
+        </div>
+        <hr class="my-4 opacity-25"/>
+        <div class="text-center small opacity-60">
+            &copy; 2026 ChickenExpress. All rights reserved.
+        </div>
+    </div>
+</footer>
+
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Category pill click handler (preview only) -->
+<script>
+    document.querySelectorAll('.ce-cat-pill').forEach(pill => {
+        pill.addEventListener('click', e => {
+            e.preventDefault();
+            document.querySelectorAll('.ce-cat-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+        });
+    });
+</script>
+
+</body>
+</html>

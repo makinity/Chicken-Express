@@ -1,0 +1,225 @@
+/*
+ * ChickenExpress — Home / Landing Page Styles
+ * Page-specific CSS loaded only on the / route.
+ * Depends on theme.css being loaded first (CSS variables must be available).
+ */
+
+/* ── Hero Carousel ───────────────────────────────────────────────────────── */
+
+#heroCarousel {
+    /* Nothing special needed — Bootstrap handles the outer wrapper */
+}
+
+/* Each Bootstrap carousel item stretches to fit its inner .ce-slide */
+#heroCarousel .carousel-item {
+    /* overflow hidden so slide backgrounds clip correctly */
+    overflow: hidden;
+}
+
+/* The actual full-height slide div inside each carousel-item */
+.ce-slide {
+    min-height: 520px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    position: relative;
+}
+
+/* The .container inside needs full height for vertical centering */
+.ce-slide .container {
+    width: 100%;
+}
+
+.ce-slide-1 {
+    background: linear-gradient(120deg, #2d5a0e 0%, #4a8a1a 50%, #639922 100%);
+}
+
+.ce-slide-2 {
+    background: linear-gradient(120deg, #7a3a00 0%, #c46800 50%, #EF9F27 100%);
+}
+
+.ce-slide-3 {
+    background: linear-gradient(120deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+/* ── Hero Heading ────────────────────────────────────────────────────────── */
+
+.ce-hero-heading {
+    font-weight: 900;
+    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
+}
+
+.ce-hero-highlight {
+    color: #d4f090;
+}
+
+/* ── Hero Illustration (floating emoji) ─────────────────────────────────── */
+
+.ce-hero-illustration {
+    font-size: 10rem;
+    line-height: 1;
+    filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.35));
+    animation: ce-float 3s ease-in-out infinite;
+    user-select: none;
+}
+
+@keyframes ce-float {
+    0%, 100% { transform: translateY(0px);   }
+    50%       { transform: translateY(-16px); }
+}
+
+/* ── Carousel Controls ───────────────────────────────────────────────────── */
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    padding: 1.2rem;
+    background-size: 60%;
+}
+
+.carousel-indicators [data-bs-target] {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.5);
+    border: none;
+}
+
+.carousel-indicators .active {
+    background-color: #ffffff;
+}
+
+/* ── Promo Badge ─────────────────────────────────────────────────────────── */
+
+.ce-promo-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: var(--accent-darker);
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.75rem;
+}
+
+/* ── Outline button (used inside dark slides) ────────────────────────────── */
+
+.ce-btn-outline {
+    border: 2px solid #fff;
+    color: #fff;
+    background: transparent;
+}
+
+.ce-btn-outline:hover,
+.ce-btn-outline:focus {
+    background: #fff;
+    color: var(--primary);
+}
+
+/* ── Hero CTA button (white bg, primary text) ────────────────────────────── */
+
+.ce-btn-hero {
+    color: var(--primary) !important;
+}
+
+.ce-btn-hero:hover {
+    color: var(--primary-dark) !important;
+}
+
+/* ── Popular Strip ───────────────────────────────────────────────────────── */
+
+.ce-popular-strip {
+    background: var(--primary-light);
+    border-top: 3px solid var(--primary);
+    border-bottom: 3px solid var(--primary);
+}
+
+/* ── Section Title ───────────────────────────────────────────────────────── */
+
+.ce-section-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--primary-dark);
+}
+
+.ce-section-title span {
+    color: var(--primary);
+}
+
+/* ── Category Pills ──────────────────────────────────────────────────────── */
+
+.ce-cat-pill {
+    background: #fff;
+    border: 2px solid var(--primary-light);
+    border-radius: 0.75rem;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.ce-cat-pill:hover,
+.ce-cat-pill.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff !important;
+}
+
+.ce-cat-emoji {
+    font-size: 2rem;
+}
+
+/* ── Popular Products Section ────────────────────────────────────────────── */
+
+.ce-section-popular {
+    background: var(--primary-light);
+}
+
+/* ── Home Product Cards ──────────────────────────────────────────────────── */
+
+.ce-product-card-home {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.ce-product-card-home:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14) !important;
+}
+
+.ce-product-img-home {
+    overflow: hidden;
+}
+
+/* ── Price text ──────────────────────────────────────────────────────────── */
+
+.ce-price {
+    color: var(--primary);
+}
+
+/* ── Why ChickenExpress Cards ────────────────────────────────────────────── */
+
+.ce-why-card {
+    border-radius: 0.75rem;
+    border: 2px solid var(--primary-light);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ce-why-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 16px rgba(99, 153, 34, 0.15);
+}
+
+.ce-why-icon {
+    font-size: 2.5rem;
+}
+
+/* ── CTA Section ─────────────────────────────────────────────────────────── */
+
+.ce-cta-section {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+}

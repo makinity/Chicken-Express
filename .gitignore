@@ -1,0 +1,55 @@
+# ── Maven build output ──────────────────────────────────────────────────────
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ── IDE files ───────────────────────────────────────────────────────────────
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# NetBeans (primary IDE for this project)
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# Eclipse
+.classpath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# VS Code
+.vscode/
+
+# ── Secrets & Environment ───────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# application-local.properties (keep local DB / PayMongo keys out of git)
+src/main/resources/application-local.properties
+src/main/resources/application-dev.properties
+
+# ── Uploaded product images (runtime-generated, not source) ─────────────────
+uploads/
+
+# ── Log files ───────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── OS files ────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── JasperReports compiled reports ──────────────────────────────────────────
+*.jasper

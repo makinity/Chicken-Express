@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/header :: head}">
+    <title>Payment Cancelled — ChickenExpress</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav th:replace="~{layout/header :: navbar}"></nav>
+
+<main class="flex-grow-1 d-flex align-items-center justify-content-center py-5">
+    <div class="text-center">
+        <div class="display-1 mb-3">😕</div>
+        <h1 class="h2 fw-bold">Payment Cancelled</h1>
+        <p class="text-muted">Your payment was not completed. Your cart items are still saved.</p>
+
+        <div class="mt-4 d-flex gap-3 justify-content-center">
+            <a th:href="@{/cart}" class="btn ce-btn-primary">
+                <i class="bi bi-cart3"></i> Back to Cart
+            </a>
+            <a th:href="@{/menu}" class="btn btn-outline-secondary">
+                Continue Shopping
+            </a>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{layout/footer :: footer}"></footer>
+
+</body>
+</html>

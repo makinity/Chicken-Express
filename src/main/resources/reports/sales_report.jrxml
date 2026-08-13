@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    ChickenExpress — sales_report.jrxml
+    JasperReports template for a date-range sales report (PDF).
+
+    This is a STUB template. Finalize layout after confirming
+    required columns with the admin users.
+
+    Expected parameters:
+      - REPORT_FROM (String, "YYYY-MM-DD")
+      - REPORT_TO   (String, "YYYY-MM-DD")
+      - TOTAL_SALES (String, "₱XXX.XX")
+
+    Expected fields (from datasource — Order list):
+      - orderNumber    (String)
+      - orderDate      (String)
+      - customerName   (String)
+      - itemCount      (Integer)
+      - totalAmount    (String, "₱XXX.XX")
+      - status         (String)
+      - paymentStatus  (String)
+-->
+<jasperReport
+    xmlns="http://jasperreports.sourceforge.net/jasperreports"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+        http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+    name="sales_report"
+    pageWidth="842" pageHeight="595"
+    orientation="Landscape"
+    columnWidth="782" leftMargin="30" rightMargin="30"
+    topMargin="20" bottomMargin="20">
+
+    <!-- ── Parameters ───────────────────────────────────────────────── -->
+    <parameter name="REPORT_FROM"  class="java.lang.String"/>
+    <parameter name="REPORT_TO"    class="java.lang.String"/>
+    <parameter name="TOTAL_SALES"  class="java.lang.String"/>
+
+    <!-- ── Fields ───────────────────────────────────────────────────── -->
+    <field name="orderNumber"   class="java.lang.String"/>
+    <field name="orderDate"     class="java.lang.String"/>
+    <field name="customerName"  class="java.lang.String"/>
+    <field name="itemCount"     class="java.lang.Integer"/>
+    <field name="totalAmount"   class="java.lang.String"/>
+    <field name="status"        class="java.lang.String"/>
+    <field name="paymentStatus" class="java.lang.String"/>
+
+    <!-- ── Title Band ───────────────────────────────────────────────── -->
+    <title>
+        <band height="60">
+            <staticText>
+                <reportElement x="0" y="0" width="782" height="28"/>
+                <textElement textAlignment="Center">
+                    <font size="16" isBold="true"/>
+                </textElement>
+                <text><![CDATA[ChickenExpress — Sales Report]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="0" y="30" width="782" height="20"/>
+                <textElement textAlignment="Center"/>
+                <textFieldExpression><![CDATA["Period: " + $P{REPORT_FROM} + " to " + $P{REPORT_TO}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <!-- ── Column Header ────────────────────────────────────────────── -->
+    <columnHeader>
+        <band height="22">
+            <staticText>
+                <reportElement x="0"   y="4" width="150" height="14"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Order #]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="150" y="4" width="120" height="14"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Date]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="270" y="4" width="160" height="14"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Customer]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="430" y="4" width="60"  height="14"/>
+                <textElement textAlignment="Center"><font isBold="true"/></textElement>
+                <text><![CDATA[Items]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="490" y="4" width="100" height="14"/>
+                <textElement textAlignment="Right"><font isBold="true"/></textElement>
+                <text><![CDATA[Total]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="590" y="4" width="100" height="14"/>
+                <textElement textAlignment="Center"><font isBold="true"/></textElement>
+                <text><![CDATA[Status]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="690" y="4" width="92"  height="14"/>
+                <textElement textAlignment="Center"><font isBold="true"/></textElement>
+                <text><![CDATA[Payment]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+
+    <!-- ── Detail Band ──────────────────────────────────────────────── -->
+    <detail>
+        <band height="18">
+            <textField><reportElement x="0"   y="2" width="150" height="14"/>
+                <textFieldExpression><![CDATA[$F{orderNumber}]]></textFieldExpression></textField>
+            <textField><reportElement x="150" y="2" width="120" height="14"/>
+                <textFieldExpression><![CDATA[$F{orderDate}]]></textFieldExpression></textField>
+            <textField><reportElement x="270" y="2" width="160" height="14"/>
+                <textFieldExpression><![CDATA[$F{customerName}]]></textFieldExpression></textField>
+            <textField><reportElement x="430" y="2" width="60"  height="14"/>
+                <textElement textAlignment="Center"/>
+                <textFieldExpression><![CDATA[$F{itemCount}]]></textFieldExpression></textField>
+            <textField><reportElement x="490" y="2" width="100" height="14"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA[$F{totalAmount}]]></textFieldExpression></textField>
+            <textField><reportElement x="590" y="2" width="100" height="14"/>
+                <textElement textAlignment="Center"/>
+                <textFieldExpression><![CDATA[$F{status}]]></textFieldExpression></textField>
+            <textField><reportElement x="690" y="2" width="92"  height="14"/>
+                <textElement textAlignment="Center"/>
+                <textFieldExpression><![CDATA[$F{paymentStatus}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+
+    <!-- ── Summary ──────────────────────────────────────────────────── -->
+    <summary>
+        <band height="30">
+            <staticText>
+                <reportElement x="390" y="8" width="100" height="16"/>
+                <textElement textAlignment="Right"><font isBold="true" size="11"/></textElement>
+                <text><![CDATA[TOTAL SALES:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="490" y="8" width="100" height="16"/>
+                <textElement textAlignment="Right"><font isBold="true" size="11"/></textElement>
+                <textFieldExpression><![CDATA[$P{TOTAL_SALES}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+
+</jasperReport>

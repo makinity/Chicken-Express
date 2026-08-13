@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/admin-layout :: adminHead}">
+    <title>Products — Admin | ChickenExpress</title>
+</head>
+<body th:replace="~{layout/admin-layout :: adminBody('Products')}">
+
+<th:block th:fragment="content">
+
+    <!-- Add button -->
+    <div class="d-flex justify-content-end mb-4">
+        <button class="btn ce-btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+            <i class="bi bi-plus-lg"></i> Add Product
+        </button>
+    </div>
+
+    <!-- Products table -->
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th class="text-center">Available</th>
+                        <th class="text-center">Popular</th>
+                        <th class="text-center">Spicy</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="product : ${products}">
+                        <td>
+                            <img th:if="${product.imageUrl != null}"
+                                 th:src="${product.imageUrl}"
+                                 class="rounded" style="width:48px;height:48px;object-fit:cover;"
+                                 alt="Product image"/>
+                            <i th:unless="${product.imageUrl != null}"
+                               class="bi bi-image text-muted fs-4"></i>
+                        </td>
+                        <td class="fw-medium" th:text="${product.name}">Name</td>
+                        <td class="text-muted small" th:text="${product.category.name}">Category</td>
+                        <td class="fw-bold ce-color-primary"
+                            th:text="'₱' + ${#numbers.formatDecimal(product.price,1,2)}">₱0.00</td>
+                        <td class="text-center">
+                            <span th:if="${product.available}" class="badge bg-success">Yes</span>
+                            <span th:unless="${product.available}" class="badge bg-secondary">No</span>
+                        </td>
+                        <td class="text-center">
+                            <i th:if="${product.popular}" class="bi bi-star-fill ce-color-accent"></i>
+                            <span th:unless="${product.popular}" class="text-muted">—</span>
+                        </td>
+                        <td class="text-center">
+                            <span th:if="${product.spicy}">🌶</span>
+                            <span th:unless="${product.spicy}" class="text-muted">—</span>
+                        </td>
+                        <td class="text-end">
+                            <!-- Edit — opens modal populated via JS -->
+                            <button class="btn btn-sm btn-outline-primary me-1"
+                                    th:data-id="${product.id}"
+                                    th:data-name="${product.name}"
+                                    th:data-description="${product.description}"
+                                    th:data-price="${product.price}"
+                                    th:data-category-id="${product.category.id}"
+                                    th:data-available="${product.available}"
+                                    th:data-popular="${product.popular}"
+                                    th:data-spicy="${product.spicy}"
+                                    th:data-image-url="${product.imageUrl}"
+                                    onclick="openEditProductModal(this)">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <!-- Delete -->
+                            <button class="btn btn-sm btn-outline-danger"
+                                    th:data-id="${product.id}"
+                                    th:data-name="${product.name}"
+                                    onclick="openDeleteProductModal(this)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr th:if="${products.isEmpty()}">
+                        <td colspan="8" class="text-center text-muted py-4">
+                            No products yet.
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#addProductModal"
+                               class="ce-link">Add the first one.</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!--  ADD PRODUCT MODAL                                                  -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form th:action="@{/admin/products/new}" method="post"
+                      enctype="multipart/form-data">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">
+                            <i class="bi bi-plus-circle"></i> Add Product
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="row g-3">
+
+                            <div class="col-12">
+                                <label class="form-label fw-medium">Product Name <span class="text-danger">*</span></label>
+                                <input type="text" name="name" class="form-control"
+                                       placeholder="e.g. Classic Fried Chicken (2 pcs)"
+                                       required maxlength="200"/>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-medium">Description</label>
+                                <textarea name="description" class="form-control" rows="2"
+                                          placeholder="Short description..."></textarea>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium">Price (₱) <span class="text-danger">*</span></label>
+                                <input type="number" name="price" class="form-control"
+                                       step="0.01" min="1" placeholder="0.00" required/>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium">Category <span class="text-danger">*</span></label>
+                                <select name="categoryId" class="form-select" required>
+                                    <option value="">Select category...</option>
+                                    <option th:each="cat : ${categories}"
+                                            th:value="${cat.id}"
+                                            th:text="${cat.name}">Category</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-medium">
+                                    Product Image
+                                    <span class="text-muted fw-normal small">(JPEG/PNG, max 5 MB)</span>
+                                </label>
+                                <input type="file" name="imageFile" class="form-control" accept="image/*"/>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="d-flex flex-wrap gap-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="available" id="addAvailable" value="true" checked/>
+                                        <label class="form-check-label" for="addAvailable">Available</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="popular" id="addPopular" value="true"/>
+                                        <label class="form-check-label" for="addPopular">
+                                            <i class="bi bi-star-fill ce-color-accent"></i> Popular
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="spicy" id="addSpicy" value="true"/>
+                                        <label class="form-check-label" for="addSpicy">🌶 Spicy</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary"
+                                data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn ce-btn-primary">
+                            <i class="bi bi-save"></i> Save Product
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!--  EDIT PRODUCT MODAL                                                 -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="modal fade" id="editProductModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form id="editProductForm" method="post" enctype="multipart/form-data">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">
+                            <i class="bi bi-pencil-square"></i> Edit Product
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="row g-3">
+
+                            <div class="col-12">
+                                <label class="form-label fw-medium">Product Name <span class="text-danger">*</span></label>
+                                <input type="text" id="editProductName" name="name"
+                                       class="form-control" required maxlength="200"/>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-medium">Description</label>
+                                <textarea id="editProductDesc" name="description"
+                                          class="form-control" rows="2"></textarea>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium">Price (₱) <span class="text-danger">*</span></label>
+                                <input type="number" id="editProductPrice" name="price"
+                                       class="form-control" step="0.01" min="1" required/>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium">Category <span class="text-danger">*</span></label>
+                                <select id="editProductCategory" name="categoryId"
+                                        class="form-select" required>
+                                    <option value="">Select category...</option>
+                                    <option th:each="cat : ${categories}"
+                                            th:value="${cat.id}"
+                                            th:text="${cat.name}">Category</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-medium">
+                                    Replace Image
+                                    <span class="text-muted fw-normal small">(leave blank to keep current)</span>
+                                </label>
+                                <div id="editCurrentImagePreview" class="mb-2 d-none">
+                                    <img id="editCurrentImage" src="" class="rounded"
+                                         style="width:64px;height:64px;object-fit:cover;" alt="Current"/>
+                                    <small class="text-muted ms-2">Current image</small>
+                                </div>
+                                <input type="file" name="imageFile" class="form-control" accept="image/*"/>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="d-flex flex-wrap gap-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               id="editProductAvailable" name="available" value="true"/>
+                                        <label class="form-check-label" for="editProductAvailable">Available</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               id="editProductPopular" name="popular" value="true"/>
+                                        <label class="form-check-label" for="editProductPopular">
+                                            <i class="bi bi-star-fill ce-color-accent"></i> Popular
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               id="editProductSpicy" name="spicy" value="true"/>
+                                        <label class="form-check-label" for="editProductSpicy">🌶 Spicy</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary"
+                                data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn ce-btn-primary">
+                            <i class="bi bi-save"></i> Update Product
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!--  DELETE CONFIRM MODAL                                               -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="modal fade" id="deleteProductModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <form id="deleteProductForm" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold text-danger">
+                            <i class="bi bi-trash3"></i> Delete Product
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body pt-2">
+                        <p class="mb-0">Delete <strong id="deleteProductName"></strong>?
+                            This cannot be undone.</p>
+                    </div>
+
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!--  Modal helper scripts                                               -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <script>
+        function openEditProductModal(btn) {
+            const id         = btn.dataset.id;
+            const name       = btn.dataset.name;
+            const desc       = btn.dataset.description || '';
+            const price      = btn.dataset.price;
+            const categoryId = btn.dataset.categoryId;
+            const available  = btn.dataset.available === 'true';
+            const popular    = btn.dataset.popular === 'true';
+            const spicy      = btn.dataset.spicy === 'true';
+            const imageUrl   = btn.dataset.imageUrl;
+
+            document.getElementById('editProductForm').action = '/admin/products/' + id + '/edit';
+            document.getElementById('editProductName').value = name;
+            document.getElementById('editProductDesc').value = desc;
+            document.getElementById('editProductPrice').value = price;
+            document.getElementById('editProductAvailable').checked = available;
+            document.getElementById('editProductPopular').checked = popular;
+            document.getElementById('editProductSpicy').checked = spicy;
+
+            // Set category select
+            const sel = document.getElementById('editProductCategory');
+            for (let opt of sel.options) {
+                opt.selected = opt.value === categoryId;
+            }
+
+            // Show current image preview
+            const preview = document.getElementById('editCurrentImagePreview');
+            const img     = document.getElementById('editCurrentImage');
+            if (imageUrl && imageUrl !== 'null') {
+                img.src = imageUrl;
+                preview.classList.remove('d-none');
+            } else {
+                preview.classList.add('d-none');
+            }
+
+            new bootstrap.Modal(document.getElementById('editProductModal')).show();
+        }
+
+        function openDeleteProductModal(btn) {
+            const id   = btn.dataset.id;
+            const name = btn.dataset.name;
+            document.getElementById('deleteProductForm').action = '/admin/products/' + id + '/delete';
+            document.getElementById('deleteProductName').textContent = '"' + name + '"';
+            new bootstrap.Modal(document.getElementById('deleteProductModal')).show();
+        }
+    </script>
+
+</th:block>
+
+</body>
+</html>

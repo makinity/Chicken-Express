@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/admin-layout :: adminHead}">
+    <title>Orders — Admin | ChickenExpress</title>
+</head>
+<body th:replace="~{layout/admin-layout :: adminBody('Orders')}">
+
+<th:block th:fragment="content">
+
+        <!-- Status filter tabs -->
+        <div class="mb-3">
+            <a th:href="@{/admin/orders}"
+               class="btn btn-sm me-1"
+               th:classappend="${filterStatus == null} ? 'ce-btn-primary' : 'btn-outline-secondary'">
+                All
+            </a>
+            <a th:each="s : ${ {'PENDING','PREPARING','READY','COMPLETED','CANCELLED'} }"
+               th:href="@{/admin/orders(status=${s})}"
+               th:text="${s}"
+               class="btn btn-sm me-1"
+               th:classappend="${filterStatus?.name() == s} ? 'ce-btn-primary' : 'btn-outline-secondary'">
+                Status
+            </a>
+        </div>
+
+        <!-- Flash -->
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show">
+            <span th:text="${message}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order #</th>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Type</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="order : ${orders}">
+                            <td class="fw-mono small" th:text="${order.orderNumber}">CE-00001</td>
+                            <td class="small text-muted"
+                                th:text="${#temporals.format(order.createdAt,'MMM d HH:mm')}">Jan 1</td>
+                            <td th:text="${order.user.fullName}">Customer</td>
+                            <td class="small text-muted" th:text="${order.orderType}">TAKEOUT</td>
+                            <td class="fw-bold"
+                                th:text="'₱' + ${#numbers.formatDecimal(order.totalAmount,1,2)}">₱0.00</td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${order.status.name() == 'COMPLETED'} ? 'bg-success' :
+                                                      (${order.status.name() == 'CANCELLED'} ? 'bg-danger' :
+                                                      (${order.status.name() == 'PREPARING'} ? 'bg-warning text-dark' :
+                                                      (${order.status.name() == 'READY'} ? 'bg-info' : 'bg-secondary')))"
+                                      th:text="${order.status}">Status</span>
+                            </td>
+                            <td>
+                                <span class="badge"
+                                      th:if="${order.payment != null}"
+                                      th:classappend="${order.payment.status.name() == 'PAID'} ? 'bg-success' :
+                                                       (${order.payment.status.name() == 'FAILED'} ? 'bg-danger' : 'bg-secondary')"
+                                      th:text="${order.payment?.status}">PAID</span>
+                                <span th:unless="${order.payment != null}" class="text-muted small">—</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/admin/orders/{id}(id=${order.id})}"
+                                   class="btn btn-sm btn-outline-secondary">
+                                    Manage
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${orders.isEmpty()}">
+                            <td colspan="8" class="text-center text-muted py-4">No orders found.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+</th:block>
+
+</body>
+</html>

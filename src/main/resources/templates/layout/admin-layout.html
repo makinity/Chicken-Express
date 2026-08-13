@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- ── Head fragment ────────────────────────────────────────────────────── -->
+<th:block th:fragment="adminHead">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${pageTitle} ?: 'Admin — ChickenExpress'">Admin — ChickenExpress</title>
+
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/theme.css(v=4)}"/>
+    <link rel="stylesheet" th:href="@{/css/admin.css(v=4)}"/>
+
+    <th:block th:if="${extraCss}">
+        <link rel="stylesheet" th:href="${extraCss}"/>
+    </th:block>
+</head>
+</th:block>
+
+<!-- ── Body wrapper fragment ────────────────────────────────────────────── -->
+<th:block th:fragment="adminBody(pageTitle)">
+<body class="ce-admin-body">
+
+<!-- ── Mobile offcanvas sidebar — direct child of body ─────────────────── -->
+<div class="offcanvas offcanvas-start ce-admin-sidebar" tabindex="-1" id="adminSidebar">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title fw-bold">
+            <i class="bi bi-egg-fried"></i> ChickenExpress
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body p-2">
+        <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" th:href="@{/admin/dashboard}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" th:href="@{/admin/orders}"><i class="bi bi-receipt"></i> Orders</a></li>
+            <li class="nav-item"><a class="nav-link" th:href="@{/admin/products}"><i class="bi bi-egg-fried"></i> Products</a></li>
+            <li class="nav-item"><a class="nav-link" th:href="@{/admin/categories}"><i class="bi bi-tags"></i> Categories</a></li>
+            <li class="nav-item"><a class="nav-link" th:href="@{/admin/users}"><i class="bi bi-people"></i> Users</a></li>
+            <li class="nav-item"><a class="nav-link" th:href="@{/admin/reports}"><i class="bi bi-bar-chart-line"></i> Reports</a></li>
+        </ul>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!--  APP SHELL — sidebar (full height) | topbar + content                  -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="ce-admin-shell">
+
+    <!-- ── Desktop Sidebar ─────────────────────────────────────────────── -->
+    <nav class="ce-admin-sidebar d-none d-md-flex flex-column flex-shrink-0 p-3"
+         id="adminSidebarDesktop">
+
+        <a class="ce-sidebar-brand d-flex align-items-center gap-2 mb-3 text-decoration-none"
+           th:href="@{/admin/dashboard}">
+            <i class="bi bi-egg-fried fs-5"></i>
+            <span class="fw-bold">ChickenExpress</span>
+        </a>
+        <hr class="ce-sidebar-divider mb-3"/>
+
+        <ul class="nav flex-column flex-grow-1">
+            <li class="nav-item mb-1">
+                <a class="nav-link" th:href="@{/admin/dashboard}">
+                    <i class="bi bi-speedometer2"></i><span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a class="nav-link" th:href="@{/admin/orders}">
+                    <i class="bi bi-receipt"></i><span>Orders</span>
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a class="nav-link" th:href="@{/admin/products}">
+                    <i class="bi bi-egg-fried"></i><span>Products</span>
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a class="nav-link" th:href="@{/admin/categories}">
+                    <i class="bi bi-tags"></i><span>Categories</span>
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a class="nav-link" th:href="@{/admin/users}">
+                    <i class="bi bi-people"></i><span>Users</span>
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a class="nav-link" th:href="@{/admin/reports}">
+                    <i class="bi bi-bar-chart-line"></i><span>Reports</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="border-top pt-3 mt-auto text-center">
+            <small class="text-muted" style="font-size:0.72rem; opacity:0.6;">
+                Admin Panel v1.0
+            </small>
+        </div>
+    </nav>
+
+    <!-- ── Right column: topbar + content ──────────────────────────────── -->
+    <div class="ce-admin-right d-flex flex-column">
+
+        <!-- Topbar -->
+        <header class="ce-admin-topbar d-flex align-items-center justify-content-between">
+
+            <!-- Mobile: burger + brand -->
+            <div class="d-flex align-items-center gap-2 d-md-none">
+                <button class="btn btn-sm ce-topbar-burger" type="button"
+                        data-bs-toggle="offcanvas" data-bs-target="#adminSidebar">
+                    <i class="bi bi-list fs-5"></i>
+                </button>
+                <span class="fw-bold" style="color:var(--primary-darker);">
+                    <i class="bi bi-egg-fried"></i> ChickenExpress
+                </span>
+            </div>
+
+            <!-- Desktop: breadcrumb -->
+            <nav aria-label="breadcrumb" class="d-none d-md-block mb-0">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item">
+                        <a th:href="@{/admin/dashboard}" class="ce-link">Admin</a>
+                    </li>
+                    <li class="breadcrumb-item active fw-medium"
+                        th:text="${pageTitle}">Page</li>
+                </ol>
+            </nav>
+
+            <!-- Profile dropdown -->
+            <div class="dropdown">
+                <a class="ce-topbar-user dropdown-toggle d-flex align-items-center gap-2 text-decoration-none"
+                   href="#" data-bs-toggle="dropdown">
+                    <i class="bi bi-person-circle fs-5"></i>
+                    <span class="d-none d-sm-inline small fw-medium"
+                          sec:authentication="name">Admin</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <form th:action="@{/logout}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}"
+                                   th:value="${_csrf.token}"/>
+                            <button class="dropdown-item text-danger" type="submit">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </header>
+
+        <!-- Page content -->
+        <main class="ce-admin-main flex-grow-1">
+            <div class="ce-admin-content">
+                <th:block th:replace="~{:: content}"/>
+            </div>
+        </main>
+
+    </div><!-- /.ce-admin-right -->
+
+</div><!-- /.ce-admin-shell -->
+
+<!-- ── Toast container ─────────────────────────────────────────────────── -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+    <div id="toastSuccess" class="toast align-items-center text-bg-success border-0"
+         role="alert" aria-live="assertive" aria-atomic="true" th:if="${toastSuccess}">
+        <div class="d-flex">
+            <div class="toast-body fw-medium">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span th:text="${toastSuccess}">Done!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+    <div id="toastError" class="toast align-items-center text-bg-danger border-0"
+         role="alert" aria-live="assertive" aria-atomic="true" th:if="${toastError}">
+        <div class="d-flex">
+            <div class="toast-body fw-medium">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span th:text="${toastError}">Error!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 5 JS (local) -->
+<script th:src="@{/js/bootstrap.bundle.min.js(v=3)}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Auto-show toasts
+        document.querySelectorAll('.toast').forEach(function (el) {
+            new bootstrap.Toast(el, { delay: 4000 }).show();
+        });
+
+        // Active sidebar link
+        const path = window.location.pathname;
+        document.querySelectorAll('.ce-admin-sidebar .nav-link').forEach(function (link) {
+            const href = link.getAttribute('href');
+            if (!href) return;
+            if (path === href || (href !== '/admin' && href !== '/admin/' && path.startsWith(href))) {
+                link.classList.add('active');
+            }
+        });
+    });
+</script>
+
+<th:block th:if="${extraJs}">
+    <script th:src="${extraJs}"></script>
+</th:block>
+
+</body>
+</th:block>
+
+</html>
