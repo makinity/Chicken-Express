@@ -85,14 +85,25 @@ public class AuthService implements UserDetailsService {
 
     /**
      * Update a user's profile information.
-     * TODO: implement full profile update logic
      */
-    public User updateProfile(Long userId, String fullName, String phone, String address) {
+    public User updateProfile(Long userId, String fullName, String phone, String address, Double latitude, Double longitude) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
         user.setFullName(fullName);
         user.setPhone(phone);
         user.setAddress(address);
+        user.setLatitude(latitude);
+        user.setLongitude(longitude);
+        return userRepository.save(user);
+    }
+
+    /**
+     * Update a user's profile image URL.
+     */
+    public User updateProfileImage(Long userId, String profileImageUrl) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+        user.setProfileImageUrl(profileImageUrl);
         return userRepository.save(user);
     }
 }

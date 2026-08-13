@@ -99,17 +99,40 @@
 
                 <!-- User dropdown (authenticated users) -->
                 <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                    <a class="nav-link ce-nav-link ce-nav-user px-2 dropdown-toggle"
+                    <a class="nav-link ce-nav-link ce-nav-user px-2 dropdown-toggle d-flex align-items-center gap-2"
                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle fs-5"></i>
-                        <span class="ms-1" sec:authentication="name">User</span>
+                        <!-- Profile photo -->
+                        <img th:if="${currentProfileImageUrl != null}"
+                             th:src="${currentProfileImageUrl}"
+                             alt="Avatar"
+                             style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.6);"/>
+                        <!-- Fallback icon -->
+                        <i th:unless="${currentProfileImageUrl != null}"
+                           class="bi bi-person-circle fs-5"></i>
+                        <span sec:authentication="name">User</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end ce-dropdown shadow-sm border-0 mt-2">
-                        <li class="px-3 py-2 text-muted small">
-                            <i class="bi bi-person me-1"></i>
-                            <span sec:authentication="name">User</span>
+                        <li class="px-3 py-2 d-flex align-items-center gap-2">
+                            <!-- Mini avatar in dropdown header -->
+                            <img th:if="${currentProfileImageUrl != null}"
+                                 th:src="${currentProfileImageUrl}"
+                                 alt="Avatar"
+                                 style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;"/>
+                            <div th:unless="${currentProfileImageUrl != null}"
+                                 style="width:36px;height:36px;border-radius:50%;background:var(--ce-primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="bi bi-person text-white"></i>
+                            </div>
+                            <div>
+                                <div class="fw-semibold small lh-sm" sec:authentication="name">User</div>
+                                <div class="text-muted" style="font-size:.72rem;">View profile</div>
+                            </div>
                         </li>
                         <li><hr class="dropdown-divider my-1"/></li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/profile}">
+                                <i class="bi bi-person me-2"></i>My Profile
+                            </a>
+                        </li>
                         <li>
                             <a class="dropdown-item" th:href="@{/orders}">
                                 <i class="bi bi-receipt me-2"></i>My Orders

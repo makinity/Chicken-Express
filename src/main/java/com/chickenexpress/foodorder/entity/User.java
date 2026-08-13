@@ -52,6 +52,16 @@ public class User {
     @Column(length = 255)
     private String address;
 
+    @Column
+    private Double latitude;
+
+    @Column
+    private Double longitude;
+
+    @Size(max = 255)
+    @Column(length = 255)
+    private String profileImageUrl;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -113,6 +123,15 @@ public class User {
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
+
+    public Double getLatitude() { return latitude; }
+    public void setLatitude(Double latitude) { this.latitude = latitude; }
+
+    public Double getLongitude() { return longitude; }
+    public void setLongitude(Double longitude) { this.longitude = longitude; }
+
+    public String getProfileImageUrl() { return profileImageUrl; }
+    public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

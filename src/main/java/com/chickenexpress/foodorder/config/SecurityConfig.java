@@ -74,6 +74,9 @@ public class SecurityConfig {
                 // Static assets — always public
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
 
+                // Uploaded files (product images, user avatars) — public read access
+                .requestMatchers("/uploads/**").permitAll()
+
                 // Error page (Spring Boot forwards here on exceptions)
                 .requestMatchers("/error").permitAll()
 
