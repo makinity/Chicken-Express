@@ -34,6 +34,11 @@ public class Category {
     @Column(nullable = false)
     private boolean active = true;
 
+    /** Relative URL to the category image (e.g., /uploads/categories/chicken-meals.jpg). */
+    @Size(max = 255)
+    @Column(length = 255)
+    private String imageUrl;
+
     // ── Relationships ────────────────────────────────────────────────────────
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
@@ -63,6 +68,9 @@ public class Category {
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
     public List<Product> getProducts() { return products; }
     public void setProducts(List<Product> products) { this.products = products; }

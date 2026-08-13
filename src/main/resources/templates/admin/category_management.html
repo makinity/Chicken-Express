@@ -20,6 +20,7 @@
             <table class="table table-hover mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
+                        <th style="width:60px;">Image</th>
                         <th>Name</th>
                         <th>Description</th>
                         <th class="text-center">Sort</th>
@@ -30,6 +31,19 @@
                 </thead>
                 <tbody>
                     <tr th:each="cat : ${categories}">
+                        <!-- Thumbnail -->
+                        <td>
+                            <img th:if="${cat.imageUrl != null}"
+                                 th:src="${cat.imageUrl}"
+                                 th:alt="${cat.name}"
+                                 class="rounded"
+                                 style="width:48px;height:48px;object-fit:cover;"/>
+                            <div th:unless="${cat.imageUrl != null}"
+                                 class="rounded d-flex align-items-center justify-content-center bg-light"
+                                 style="width:48px;height:48px;font-size:1.5rem;">
+                                🍽️
+                            </div>
+                        </td>
                         <td class="fw-medium" th:text="${cat.name}">Category</td>
                         <td class="text-muted small" th:text="${cat.description ?: '—'}">—</td>
                         <td class="text-center text-muted small" th:text="${cat.sortOrder}">0</td>
@@ -42,17 +56,16 @@
                                   th:text="${cat.products.size()}">0</span>
                         </td>
                         <td class="text-end">
-                            <!-- Edit button — populates modal via JS -->
                             <button class="btn btn-sm btn-outline-primary me-1"
                                     th:data-id="${cat.id}"
                                     th:data-name="${cat.name}"
                                     th:data-description="${cat.description}"
                                     th:data-sort="${cat.sortOrder}"
                                     th:data-active="${cat.active}"
+                                    th:data-image="${cat.imageUrl}"
                                     onclick="openEditModal(this)">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <!-- Delete button — populates confirm modal -->
                             <button class="btn btn-sm btn-outline-danger"
                                     th:data-id="${cat.id}"
                                     th:data-name="${cat.name}"
@@ -63,7 +76,7 @@
                         </td>
                     </tr>
                     <tr th:if="${categories.isEmpty()}">
-                        <td colspan="6" class="text-center text-muted py-4">
+                        <td colspan="7" class="text-center text-muted py-4">
                             No categories yet. Add the first one.
                         </td>
                     </tr>
@@ -79,7 +92,8 @@
     <div class="modal fade" id="addCategoryModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form th:action="@{/admin/categories/new}" method="post">
+                <form th:action="@{/admin/categories/new}" method="post"
+                      enctype="multipart/form-data">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
                     <div class="modal-header">
@@ -100,11 +114,20 @@
                             <textarea name="description" class="form-control" rows="2"
                                       placeholder="Short description (optional)" maxlength="255"></textarea>
                         </div>
-                        <div class="mb-1">
+                        <div class="mb-3">
                             <label class="form-label fw-medium">Display Order</label>
                             <input type="number" name="sortOrder" class="form-control"
                                    value="0" min="0" max="999"/>
                             <div class="form-text">Lower number = shown first in the menu.</div>
+                        </div>
+                        <div class="mb-1">
+                            <label class="form-label fw-medium">Category Image</label>
+                            <input type="file" name="imageFile" class="form-control"
+                                   accept="image/*" onchange="previewImage(this, 'addPreview')"/>
+                            <div class="form-text">Optional. JPG, PNG, WebP — max 5MB.</div>
+                            <img id="addPreview" src="#" alt="Preview"
+                                 class="mt-2 rounded d-none"
+                                 style="max-height:120px;max-width:100%;object-fit:cover;"/>
                         </div>
                     </div>
 
@@ -127,7 +150,7 @@
     <div class="modal fade" id="editCategoryModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="editCategoryForm" method="post">
+                <form id="editCategoryForm" method="post" enctype="multipart/form-data">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
                     <div class="modal-header">
@@ -153,10 +176,26 @@
                             <input type="number" id="editSortOrder" name="sortOrder"
                                    class="form-control" min="0" max="999"/>
                         </div>
-                        <div class="form-check">
+                        <div class="mb-3 form-check">
                             <input class="form-check-input" type="checkbox"
                                    id="editActive" name="active" value="true"/>
                             <label class="form-check-label" for="editActive">Active</label>
+                        </div>
+                        <div class="mb-1">
+                            <label class="form-label fw-medium">Category Image</label>
+                            <!-- Current image preview -->
+                            <div id="editCurrentImageWrap" class="mb-2 d-none">
+                                <img id="editCurrentImage" src="#" alt="Current image"
+                                     class="rounded"
+                                     style="max-height:100px;max-width:100%;object-fit:cover;"/>
+                                <div class="form-text">Current image. Upload a new one to replace it.</div>
+                            </div>
+                            <input type="file" name="imageFile" class="form-control"
+                                   accept="image/*" onchange="previewImage(this, 'editPreview')"/>
+                            <div class="form-text">Leave empty to keep the current image.</div>
+                            <img id="editPreview" src="#" alt="New preview"
+                                 class="mt-2 rounded d-none"
+                                 style="max-height:120px;max-width:100%;object-fit:cover;"/>
                         </div>
                     </div>
 
@@ -213,21 +252,38 @@
 
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!--  Modal helper scripts                                               -->
+    <!--  Scripts                                                            -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <script th:inline="javascript">
         function openEditModal(btn) {
-            const id   = btn.dataset.id;
-            const name = btn.dataset.name;
-            const desc = btn.dataset.description || '';
-            const sort = btn.dataset.sort;
+            const id     = btn.dataset.id;
+            const name   = btn.dataset.name;
+            const desc   = btn.dataset.description || '';
+            const sort   = btn.dataset.sort;
             const active = btn.dataset.active === 'true';
+            const image  = btn.dataset.image || '';
 
             document.getElementById('editCategoryForm').action = '/admin/categories/' + id + '/edit';
-            document.getElementById('editName').value = name;
+            document.getElementById('editName').value        = name;
             document.getElementById('editDescription').value = desc;
-            document.getElementById('editSortOrder').value = sort;
-            document.getElementById('editActive').checked = active;
+            document.getElementById('editSortOrder').value   = sort;
+            document.getElementById('editActive').checked    = active;
+
+            // Reset new-image preview
+            const editPreview = document.getElementById('editPreview');
+            editPreview.classList.add('d-none');
+            editPreview.src = '#';
+
+            // Show/hide current image
+            const wrap = document.getElementById('editCurrentImageWrap');
+            const img  = document.getElementById('editCurrentImage');
+            if (image) {
+                img.src = image;
+                wrap.classList.remove('d-none');
+            } else {
+                wrap.classList.add('d-none');
+                img.src = '#';
+            }
 
             new bootstrap.Modal(document.getElementById('editCategoryModal')).show();
         }
@@ -240,7 +296,7 @@
             document.getElementById('deleteCategoryForm').action = '/admin/categories/' + id + '/delete';
             document.getElementById('deleteTargetName').textContent = '"' + name + '"';
 
-            const warning = document.getElementById('deleteWarning');
+            const warning    = document.getElementById('deleteWarning');
             const confirmBtn = document.getElementById('deleteConfirmBtn');
             if (count > 0) {
                 warning.classList.remove('d-none');
@@ -251,6 +307,19 @@
             }
 
             new bootstrap.Modal(document.getElementById('deleteCategoryModal')).show();
+        }
+
+        // Live image preview before upload
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.src = e.target.result;
+                    preview.classList.remove('d-none');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
         }
     </script>
 

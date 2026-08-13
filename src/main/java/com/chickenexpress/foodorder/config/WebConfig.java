@@ -32,6 +32,10 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:uploads/");
 
+        // Brand assets (logo, etc.) — served from classpath /assets/
+        registry.addResourceHandler("/assets/**")
+                .addResourceLocations("classpath:/assets/");
+
         // Default classpath statics — Spring Boot handles /static/** automatically,
         // but declaring it here keeps everything visible in one place.
         registry.addResourceHandler("/css/**", "/js/**", "/images/**")

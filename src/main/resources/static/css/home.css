@@ -172,6 +172,14 @@
     font-size: 2rem;
 }
 
+/* Category image (when uploaded) */
+.ce-cat-img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+}
+
 /* ── Popular Products Section ────────────────────────────────────────────── */
 
 .ce-section-popular {

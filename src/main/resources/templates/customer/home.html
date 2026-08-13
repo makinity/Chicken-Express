@@ -193,7 +193,13 @@
                 <div class="col" th:each="cat : ${categories}">
                     <a th:href="@{/menu(categoryId=${cat.id})}"
                        class="ce-cat-pill d-flex flex-column align-items-center p-3 text-center text-decoration-none">
-                        <div class="ce-cat-emoji">🍽️</div>
+                        <!-- Category image if available, otherwise emoji fallback -->
+                        <img th:if="${cat.imageUrl != null}"
+                             th:src="${cat.imageUrl}"
+                             th:alt="${cat.name}"
+                             class="ce-cat-img mb-1"
+                             loading="lazy"/>
+                        <div th:unless="${cat.imageUrl != null}" class="ce-cat-emoji">🍽️</div>
                         <div class="fw-semibold mt-2 small" th:text="${cat.name}">Category</div>
                     </a>
                 </div>

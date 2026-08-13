@@ -111,6 +111,8 @@ public class ProductManagementController {
         product.setSpicy(spicy);
 
         if (!imageFile.isEmpty()) {
+            // Delete the old image file before saving the new one
+            deleteImageFile(product.getImageUrl());
             product.setImageUrl(saveImage(imageFile));
         }
 
@@ -126,12 +128,14 @@ public class ProductManagementController {
         Product product = productRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
         String name = product.getName();
+        // Delete the image file from disk before removing the DB record
+        deleteImageFile(product.getImageUrl());
         productRepository.delete(product);
         ra.addFlashAttribute("toastSuccess", "Product \"" + name + "\" deleted.");
         return "redirect:/admin/products";
     }
 
-    // ── Helper ────────────────────────────────────────────────────────────────
+    // ── Helpers ────────────────────────────────────────────────────────────
 
     private String saveImage(MultipartFile file) {
         try {
@@ -144,4 +148,31 @@ public class ProductManagementController {
             throw new RuntimeException("Failed to save product image.", e);
         }
     }
+
+    /**
+     * Deletes a product image file from disk.
+     * Safe to call with null or blank URLs — silently skips.
+     * Only deletes files that live inside the uploads/products/ directory.
+     */
+    private void deleteImageFile(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) return;
+        try {
+            // imageUrl is like "/uploads/products/uuid_filename.jpg"
+            // Strip the leading slash and resolve against working directory
+            String relativePath = imageUrl.startsWith("/") ? imageUrl.substring(1) : imageUrl;
+            Path filePath = Paths.get(relativePath).normalize();
+
+            // Safety check: only delete files inside the uploads/products directory
+            Path uploadRoot = Paths.get(UPLOAD_DIR).normalize().toAbsolutePath();
+            if (!filePath.toAbsolutePath().startsWith(uploadRoot)) {
+                return;
+            }
+
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            // Log but don't fail — image cleanup is best-effort
+            System.err.println("Warning: could not delete image file: " + imageUrl + " — " + e.getMessage());
+        }
+    }
+
 }

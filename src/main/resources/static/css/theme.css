@@ -64,6 +64,12 @@
     opacity: 0.9;
 }
 
+.ce-navbar-logo {
+    height: 32px;
+    width: auto;
+    object-fit: contain;
+}
+
 /* Nav links */
 .ce-nav-link {
     color: rgba(255, 255, 255, 0.92) !important;
@@ -370,8 +376,16 @@
 }
 
 .ce-chatbot-avatar {
-    font-size: 1.6rem;
-    line-height: 1;
+    font-size: 1.4rem;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    flex-shrink: 0;
 }
 
 .ce-chatbot-close-btn {
