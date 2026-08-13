@@ -53,12 +53,13 @@
     color: #d4f090;
 }
 
-/* ── Hero Illustration (floating emoji) ─────────────────────────────────── */
+/* ── Slide illustration image ─────────────────────────────────────────────── */
 
-.ce-hero-illustration {
-    font-size: 10rem;
-    line-height: 1;
-    filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.35));
+.ce-slide-img {
+    max-height: 380px;
+    max-width: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.25));
     animation: ce-float 3s ease-in-out infinite;
     user-select: none;
 }
