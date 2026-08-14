@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/admin-layout :: adminHead}">
+    <title>My Profile — Admin | ChickenExpress</title>
+</head>
+<body th:replace="~{layout/admin-layout :: adminBody('My Profile')}">
+
+<th:block th:fragment="content">
+
+<style>
+    /* ── Avatar widget ───────────────────────────────────────────── */
+    .ce-avatar-wrap {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+    .ce-avatar-circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow: 0 2px 12px rgba(0,0,0,.18);
+        background-color: var(--primary);
+        background-size: cover;
+        background-position: center;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #fff;
+        user-select: none;
+    }
+    .ce-avatar-circle img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .ce-avatar-overlay {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: rgba(0,0,0,.5);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: .68rem;
+        font-weight: 600;
+        opacity: 0;
+        transition: opacity .2s ease;
+        gap: 2px;
+    }
+    .ce-avatar-wrap:hover .ce-avatar-overlay { opacity: 1; }
+    .ce-avatar-overlay i { font-size: 1.3rem; }
+
+    /* ── Section label ───────────────────────────────────────────── */
+    .ce-section-label {
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+        color: var(--primary);
+        margin-bottom: .65rem;
+    }
+
+    /* ── Input focus override ────────────────────────────────────── */
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 .2rem rgba(99,153,34,.18);
+    }
+
+    /* ── Password strength meter ─────────────────────────────────── */
+    #pwStrengthBar {
+        height: 4px;
+        border-radius: 2px;
+        transition: width .3s ease, background-color .3s ease;
+    }
+</style>
+
+<!-- ── Flash alerts ───────────────────────────────────────────────────── -->
+<div th:if="${errorMessage}"
+     class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 mb-3">
+    <i class="bi bi-exclamation-circle-fill fs-5"></i>
+    <span th:text="${errorMessage}"></span>
+    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+</div>
+
+<!-- ── Profile header card (avatar + name) ───────────────────────────── -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex align-items-center gap-4 flex-wrap">
+
+            <!-- Clickable avatar -->
+            <form th:action="@{/admin/profile/avatar}" method="post"
+                  enctype="multipart/form-data" id="avatarForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <input type="file" id="avatarFile" name="avatarFile"
+                       accept="image/jpeg,image/png,image/webp,image/gif"
+                       class="d-none"/>
+
+                <div class="ce-avatar-wrap"
+                     onclick="document.getElementById('avatarFile').click()"
+                     title="Click to change photo">
+                    <div class="ce-avatar-circle">
+                        <img th:if="${user.profileImageUrl != null}"
+                             th:src="${user.profileImageUrl}"
+                             th:alt="${user.fullName}"/>
+                        <span th:unless="${user.profileImageUrl != null}"
+                              th:text="${#strings.toUpperCase(#strings.substring(user.fullName,0,1))}">A</span>
+                    </div>
+                    <div class="ce-avatar-overlay">
+                        <i class="bi bi-camera-fill"></i>
+                        <span>Change</span>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Name + role -->
+            <div>
+                <h5 class="fw-bold mb-1" th:text="${user.fullName}">Admin Name</h5>
+                <div class="text-muted small mb-1" th:text="${user.email}">admin@example.com</div>
+                <span class="badge"
+                      style="background-color:var(--primary);font-size:.72rem;">
+                    <i class="bi bi-shield-check me-1"></i>Administrator
+                </span>
+            </div>
+
+            <div class="ms-auto text-end d-none d-md-block">
+                <div class="text-muted small">
+                    <i class="bi bi-calendar3 me-1"></i>
+                    Member since
+                    <span th:text="${#temporals.format(user.createdAt,'MMM d, yyyy')}"></span>
+                </div>
+                <div class="text-muted small mt-1">
+                    <i class="bi bi-clock me-1"></i>
+                    Last updated
+                    <span th:text="${#temporals.format(user.updatedAt,'MMM d, yyyy HH:mm')}"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-2">
+            <small class="text-muted">
+                <i class="bi bi-camera me-1"></i>
+                Click the photo to upload a new one &nbsp;·&nbsp; JPEG, PNG, WebP or GIF &nbsp;·&nbsp; max 2 MB
+            </small>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- ── LEFT: Account info form ──────────────────────────────────── -->
+    <div class="col-lg-6" id="account">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header ce-card-header fw-bold">
+                <i class="bi bi-person-lines-fill"></i> Account Information
+            </div>
+            <div class="card-body p-4">
+
+                <!-- Info update feedback -->
+                <div th:if="${errorMessage}"
+                     class="alert alert-danger alert-dismissible fade show py-2 small d-flex align-items-center gap-2">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close ms-auto btn-close-sm"
+                            data-bs-dismiss="alert"></button>
+                </div>
+
+                <form th:action="@{/admin/profile}" method="post" novalidate>
+                    <input type="hidden" th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}"/>
+
+                    <p class="ce-section-label">
+                        <i class="bi bi-person me-1"></i>Personal Details
+                    </p>
+
+                    <!-- Full name -->
+                    <div class="mb-3">
+                        <label for="fullName" class="form-label fw-medium small">
+                            Full Name <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <input type="text" id="fullName" name="fullName"
+                                   class="form-control border-start-0"
+                                   th:value="${user.fullName}"
+                                   required maxlength="100"
+                                   placeholder="Your full name"/>
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-4">
+                        <label for="email" class="form-label fw-medium small">
+                            Email Address <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted">
+                                <i class="bi bi-envelope"></i>
+                            </span>
+                            <input type="email" id="email" name="email"
+                                   class="form-control border-start-0"
+                                   th:value="${user.email}"
+                                   required maxlength="150"
+                                   placeholder="admin@example.com"/>
+                        </div>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Changing your email will require you to log in again.
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn ce-btn-primary px-4">
+                        <i class="bi bi-check-lg me-1"></i>Save Changes
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ── RIGHT: Change password form ──────────────────────────────── -->
+    <div class="col-lg-6" id="password">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header ce-card-header fw-bold">
+                <i class="bi bi-shield-lock"></i> Change Password
+            </div>
+            <div class="card-body p-4">
+
+                <!-- Password feedback -->
+                <div th:if="${passwordError}"
+                     class="alert alert-danger alert-dismissible fade show py-2 small d-flex align-items-center gap-2">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    <span th:text="${passwordError}"></span>
+                    <button type="button" class="btn-close ms-auto btn-close-sm"
+                            data-bs-dismiss="alert"></button>
+                </div>
+
+                <form th:action="@{/admin/profile/password}" method="post"
+                      id="passwordForm" novalidate>
+                    <input type="hidden" th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}"/>
+
+                    <p class="ce-section-label">
+                        <i class="bi bi-lock me-1"></i>Update Password
+                    </p>
+
+                    <!-- Current password -->
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label fw-medium small">
+                            Current Password <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted">
+                                <i class="bi bi-lock"></i>
+                            </span>
+                            <input type="password" id="currentPassword" name="currentPassword"
+                                   class="form-control border-start-0 border-end-0"
+                                   required autocomplete="current-password"/>
+                            <button type="button" class="btn btn-outline-secondary border-start-0"
+                                    onclick="togglePw('currentPassword',this)"
+                                    tabindex="-1">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- New password -->
+                    <div class="mb-1">
+                        <label for="newPassword" class="form-label fw-medium small">
+                            New Password <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted">
+                                <i class="bi bi-key"></i>
+                            </span>
+                            <input type="password" id="newPassword" name="newPassword"
+                                   class="form-control border-start-0 border-end-0"
+                                   required minlength="8"
+                                   autocomplete="new-password"
+                                   oninput="updateStrength(this.value)"/>
+                            <button type="button" class="btn btn-outline-secondary border-start-0"
+                                    onclick="togglePw('newPassword',this)"
+                                    tabindex="-1">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Strength bar -->
+                    <div class="mb-3">
+                        <div class="bg-light rounded overflow-hidden" style="height:4px;">
+                            <div id="pwStrengthBar" style="width:0%;height:4px;border-radius:2px;
+                                 background-color:#dee2e6;transition:width .3s,background-color .3s;"></div>
+                        </div>
+                        <div id="pwStrengthLabel" class="form-text mt-1"></div>
+                    </div>
+
+                    <!-- Confirm password -->
+                    <div class="mb-4">
+                        <label for="confirmPassword" class="form-label fw-medium small">
+                            Confirm New Password <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted">
+                                <i class="bi bi-key-fill"></i>
+                            </span>
+                            <input type="password" id="confirmPassword" name="confirmPassword"
+                                   class="form-control border-start-0 border-end-0"
+                                   required minlength="8"
+                                   autocomplete="new-password"
+                                   oninput="checkMatch()"/>
+                            <button type="button" class="btn btn-outline-secondary border-start-0"
+                                    onclick="togglePw('confirmPassword',this)"
+                                    tabindex="-1">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <div id="matchMsg" class="form-text mt-1"></div>
+                    </div>
+
+                    <button type="submit" class="btn ce-btn-primary px-4" id="pwSubmitBtn">
+                        <i class="bi bi-shield-check me-1"></i>Update Password
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+</div><!-- /row -->
+
+<!-- ── Scripts ────────────────────────────────────────────────────────── -->
+<script>
+    // Auto-submit avatar form when a file is selected
+    document.getElementById('avatarFile').addEventListener('change', function () {
+        if (this.files.length > 0) {
+            document.getElementById('avatarForm').submit();
+        }
+    });
+
+    // Show/hide password toggle
+    function togglePw(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon  = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('bi-eye', 'bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+    }
+
+    // Password strength meter
+    function updateStrength(value) {
+        const bar   = document.getElementById('pwStrengthBar');
+        const label = document.getElementById('pwStrengthLabel');
+        let score = 0;
+        if (value.length >= 8)  score++;
+        if (value.length >= 12) score++;
+        if (/[A-Z]/.test(value)) score++;
+        if (/[0-9]/.test(value)) score++;
+        if (/[^A-Za-z0-9]/.test(value)) score++;
+
+        const levels = [
+            { pct: '0%',   color: '#dee2e6', text: '' },
+            { pct: '25%',  color: '#dc3545', text: '<span class="text-danger">Weak</span>' },
+            { pct: '50%',  color: '#fd7e14', text: '<span style="color:#fd7e14">Fair</span>' },
+            { pct: '75%',  color: '#ffc107', text: '<span class="text-warning">Good</span>' },
+            { pct: '90%',  color: '#20c997', text: '<span class="text-success">Strong</span>' },
+            { pct: '100%', color: '#198754', text: '<span class="text-success fw-semibold">Very Strong</span>' },
+        ];
+
+        const level = value.length === 0 ? levels[0] : levels[Math.min(score, 5)];
+        bar.style.width           = level.pct;
+        bar.style.backgroundColor = level.color;
+        label.innerHTML           = level.text;
+
+        checkMatch();
+    }
+
+    // Confirm password match check
+    function checkMatch() {
+        const np  = document.getElementById('newPassword').value;
+        const cp  = document.getElementById('confirmPassword').value;
+        const msg = document.getElementById('matchMsg');
+        const btn = document.getElementById('pwSubmitBtn');
+        if (cp.length === 0) {
+            msg.innerHTML = '';
+            btn.disabled  = false;
+        } else if (np === cp) {
+            msg.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Passwords match</span>';
+            btn.disabled  = false;
+        } else {
+            msg.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Passwords do not match</span>';
+            btn.disabled  = true;
+        }
+    }
+
+    // Prevent form submit if passwords don't match (extra client-side guard)
+    document.getElementById('passwordForm').addEventListener('submit', function (e) {
+        const np = document.getElementById('newPassword').value;
+        const cp = document.getElementById('confirmPassword').value;
+        if (np !== cp) {
+            e.preventDefault();
+            document.getElementById('matchMsg').innerHTML =
+                '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Passwords do not match</span>';
+        }
+    });
+</script>
+
+</th:block>
+
+</body>
+</html>

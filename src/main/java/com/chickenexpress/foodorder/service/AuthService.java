@@ -106,4 +106,50 @@ public class AuthService implements UserDetailsService {
         user.setProfileImageUrl(profileImageUrl);
         return userRepository.save(user);
     }
+
+    /**
+     * Update the admin's full name (and optionally email).
+     * Throws IllegalArgumentException if the new email is already taken by another account.
+     */
+    public User updateAdminProfile(Long userId, String fullName, String newEmail) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+
+        user.setFullName(fullName.trim());
+
+        String email = newEmail.toLowerCase().trim();
+        if (!email.equals(user.getEmail())) {
+            if (userRepository.existsByEmail(email)) {
+                throw new IllegalArgumentException("That email address is already in use.");
+            }
+            user.setEmail(email);
+        }
+
+        return userRepository.save(user);
+    }
+
+    /**
+     * Change a user's password after verifying the current password.
+     *
+     * @param userId          the user's ID
+     * @param currentPassword plain-text current password to verify
+     * @param newPassword     plain-text new password to set
+     * @throws IllegalArgumentException if the current password is incorrect or
+     *                                  the new password is too short
+     */
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+        if (newPassword == null || newPassword.length() < 8) {
+            throw new IllegalArgumentException("New password must be at least 8 characters.");
+        }
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect.");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }
