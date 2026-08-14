@@ -47,6 +47,7 @@ public class MenuController {
         model.addAttribute("categories", categories);
         model.addAttribute("products", products);
         model.addAttribute("popularProducts", productRepository.findByPopularTrueAndAvailableTrue());
+        model.addAttribute("extraCss", "/css/customer.css");
         return "customer/menu";
     }
 }

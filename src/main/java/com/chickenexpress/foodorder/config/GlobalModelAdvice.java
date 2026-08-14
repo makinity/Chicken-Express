@@ -38,6 +38,13 @@ public class GlobalModelAdvice {
         }
     }
 
+    /** Exposes the current user's DB id as a plain Long for the notification JS topic. */
+    @ModelAttribute("currentUserId")
+    public Long currentUserId() {
+        User user = currentUser();
+        return user != null ? user.getId() : null;
+    }
+
     /** Kept for backward compatibility — delegates to currentUser. */
     @ModelAttribute("currentProfileImageUrl")
     public String currentProfileImageUrl() {

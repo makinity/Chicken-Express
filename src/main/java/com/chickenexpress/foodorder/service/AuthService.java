@@ -24,10 +24,13 @@ public class AuthService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final NotificationService notificationService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                       NotificationService notificationService) {
+        this.userRepository      = userRepository;
+        this.passwordEncoder     = passwordEncoder;
+        this.notificationService = notificationService;
     }
 
     // ── UserDetailsService ───────────────────────────────────────────────────
@@ -69,7 +72,12 @@ public class AuthService implements UserDetailsService {
 
         User user = new User(fullName, email.toLowerCase().trim(), passwordEncoder.encode(password));
         user.setRole("ROLE_CUSTOMER");
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+
+        // A5 — notify admin of new customer registration
+        notificationService.notifyNewCustomer(saved.getFullName(), saved.getEmail());
+
+        return saved;
     }
 
     // ── Profile ──────────────────────────────────────────────────────────────

@@ -25,9 +25,12 @@ import java.util.concurrent.atomic.AtomicLong;
 @Transactional
 public class OrderService {
 
+    private static final String PESO = "\u20B1";
+
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final CartService cartService;
+    private final NotificationService notificationService;
 
     // In-memory counter for sequential order numbers per day.
     // Seeded from the DB on startup so restarts don't cause duplicates.
@@ -36,10 +39,12 @@ public class OrderService {
 
     public OrderService(OrderRepository orderRepository,
                         UserRepository userRepository,
-                        CartService cartService) {
-        this.orderRepository = orderRepository;
-        this.userRepository = userRepository;
-        this.cartService = cartService;
+                        CartService cartService,
+                        NotificationService notificationService) {
+        this.orderRepository     = orderRepository;
+        this.userRepository      = userRepository;
+        this.cartService         = cartService;
+        this.notificationService = notificationService;
     }
 
     /** Seed the daily counter from today's existing orders so restarts don't produce duplicates. */
@@ -48,7 +53,6 @@ public class OrderService {
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         counterDate = today;
 
-        // Count how many orders already exist today — start the counter from there
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = startOfDay.plusDays(1);
         long todayCount = orderRepository.countByCreatedAtBetween(startOfDay, endOfDay);
@@ -59,18 +63,7 @@ public class OrderService {
 
     /**
      * Convert the user's cart into a confirmed Order.
-     *
-     * Steps:
-     * 1. Load cart items — throw if cart is empty
-     * 2. Build Order + OrderItem records (snapshot unit prices)
-     * 3. Save order
-     * 4. Clear the cart
-     * 5. Return the saved Order (caller then initiates payment)
-     *
-     * @param userId      the logged-in user
-     * @param orderType   DINE_IN | TAKEOUT | DELIVERY
-     * @param notes       optional special instructions
-     * @param deliveryAddress required when orderType = DELIVERY
+     * Fires: A1 (admin — new order) + C1 (customer — order confirmed).
      */
     public Order placeOrder(Long userId, Order.OrderType orderType,
                             String notes, String deliveryAddress) {
@@ -102,8 +95,20 @@ public class OrderService {
         order.setTotalAmount(total);
         Order savedOrder = orderRepository.save(order);
 
-        // Clear the cart now that the order is placed
         cartService.clearCart(userId);
+
+        // ── A1: notify admin of new order ──────────────────────────────────
+        notificationService.notifyNewOrder(
+                savedOrder.getId(),
+                savedOrder.getOrderNumber(),
+                user.getFullName(),
+                PESO + String.format("%,.2f", savedOrder.getTotalAmount())
+        );
+
+        // ── C1: confirm order to customer ──────────────────────────────────
+        notificationService.notifyOrderConfirmed(
+                userId, savedOrder.getId(), savedOrder.getOrderNumber()
+        );
 
         return savedOrder;
     }
@@ -112,12 +117,27 @@ public class OrderService {
 
     /**
      * Update order status (admin action).
-     * Validates the transition is logical before saving.
+     * Fires customer notifications C4–C7 based on the new status.
      */
     public Order updateStatus(Long orderId, Order.Status newStatus) {
         Order order = findById(orderId);
         order.setStatus(newStatus);
-        return orderRepository.save(order);
+        Order saved = orderRepository.save(order);
+
+        Long userId   = saved.getUser().getId();
+        Long id       = saved.getId();
+        String number = saved.getOrderNumber();
+
+        // Fire the appropriate customer notification
+        switch (newStatus) {
+            case PREPARING  -> notificationService.notifyOrderPreparing(userId, id, number);
+            case READY      -> notificationService.notifyOrderReady(userId, id, number);
+            case COMPLETED  -> notificationService.notifyOrderCompleted(userId, id, number);
+            case CANCELLED  -> notificationService.notifyOrderCancelled(userId, id, number);
+            default -> { /* PENDING — no customer notification needed */ }
+        }
+
+        return saved;
     }
 
     // ── Queries ──────────────────────────────────────────────────────────────
@@ -145,16 +165,12 @@ public class OrderService {
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    /** Generates a human-readable order number in the format CE-YYYYMMDD-XXXX. */
     private synchronized String generateOrderNumber() {
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-
-        // Reset counter if the date has changed (midnight rollover)
         if (!today.equals(counterDate)) {
             counterDate = today;
             dailyCounter.set(0);
         }
-
         long seq = dailyCounter.incrementAndGet();
         return String.format("CE-%s-%04d", today, seq);
     }

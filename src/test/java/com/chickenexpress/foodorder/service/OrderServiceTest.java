@@ -29,6 +29,7 @@ class OrderServiceTest {
     @Mock private OrderRepository orderRepository;
     @Mock private UserRepository  userRepository;
     @Mock private CartService     cartService;
+    @Mock private NotificationService notificationService;
 
     private OrderService orderService;
 
@@ -38,7 +39,7 @@ class OrderServiceTest {
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderService(orderRepository, userRepository, cartService);
+        orderService = new OrderService(orderRepository, userRepository, cartService, notificationService);
 
         Category category = new Category("Chicken Meals");
         category.setId(1L);
@@ -92,6 +93,7 @@ class OrderServiceTest {
         Order order = new Order();
         order.setId(1L);
         order.setStatus(Order.Status.PENDING);
+        order.setUser(testUser);
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));

@@ -74,6 +74,9 @@ public class SecurityConfig {
                 // Static assets — always public
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
 
+                // WebSocket / SockJS endpoint — must be public so the HTTP upgrade handshake works
+                .requestMatchers("/ws/**").permitAll()
+
                 // Uploaded files (product images, user avatars) — public read access
                 .requestMatchers("/uploads/**").permitAll()
 

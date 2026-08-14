@@ -23,6 +23,10 @@
     <th:block th:if="${extraCss}">
         <link rel="stylesheet" th:href="${extraCss}"/>
     </th:block>
+
+    <!-- WebSocket topic for real-time notifications (customer channel — only when logged in) -->
+    <meta th:if="${currentUserId != null}" name="ws-topic"
+          th:content="'/topic/user/' + ${currentUserId}"/>
 </head>
 <body>
 
@@ -52,13 +56,6 @@
                 <li class="nav-item">
                     <a class="nav-link ce-nav-link px-3" th:href="@{/menu}">
                         <i class="bi bi-grid-3x3-gap"></i> Menu
-                    </a>
-                </li>
-
-                <!-- Promos (anchor on home page, links to home#promos elsewhere) -->
-                <li class="nav-item">
-                    <a class="nav-link ce-nav-link px-3" th:href="@{/#promos}">
-                        <i class="bi bi-tags"></i> Promos
                     </a>
                 </li>
 
@@ -95,6 +92,31 @@
                     <a class="nav-link ce-nav-link px-3" th:href="@{/orders}">
                         <i class="bi bi-receipt"></i> Orders
                     </a>
+                </li>
+
+                <!-- Notification bell (authenticated users) -->
+                <li class="nav-item dropdown" sec:authorize="isAuthenticated()" id="ceNotifDropdown">
+                    <button class="btn nav-link ce-nav-link position-relative px-2"
+                            type="button" data-bs-toggle="dropdown"
+                            aria-expanded="false" title="Notifications"
+                            style="background:none;border:none;">
+                        <i class="bi bi-bell fs-5"></i>
+                        <span id="ceNotifBadge"
+                              class="position-absolute top-0 start-100 translate-middle
+                                     badge rounded-pill bg-danger"
+                              style="display:none;font-size:.6rem;min-width:1.2rem;padding:2px 4px;">
+                            0
+                        </span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-0 shadow"
+                         style="width:320px;max-height:420px;overflow:hidden;border-radius:.5rem;">
+                        <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+                            <span class="fw-bold small">Notifications</span>
+                            <span class="text-muted" style="font-size:.7rem;">Last 30</span>
+                        </div>
+                        <ul id="ceNotifList" class="list-unstyled mb-0"
+                            style="max-height:360px;overflow-y:auto;"></ul>
+                    </div>
                 </li>
 
                 <!-- User dropdown (authenticated users) -->
@@ -169,6 +191,17 @@
 
     </div>
 </nav>
+
+<!-- ── Real-time notification toast container (customer) ─────────────────── -->
+<div id="ceNotifToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"
+     style="z-index: 9999;" sec:authorize="isAuthenticated()"></div>
+
+<!-- SockJS + STOMP + notifications (only injected when a topic meta tag is present) -->
+<th:block th:if="${currentUserId != null}">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script th:src="@{/js/notifications.js(v=1)}"></script>
+</th:block>
 
 </body>
 </html>

@@ -4,43 +4,75 @@ import com.chickenexpress.foodorder.entity.*;
 import com.chickenexpress.foodorder.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Seeds the database with sample data on first startup.
- * Idempotent — skips if products already exist.
+ *
+ * <p>Normal mode (default): idempotent — skips if products already exist.</p>
+ *
+ * <p>Refresh-seed mode: set {@code app.seed.reset=true} (e.g. in
+ * {@code application-dev.properties} or as a JVM argument
+ * {@code -Dapp.seed.reset=true}) to wipe all data and re-seed from scratch.
+ * Uploaded files whose paths are stored in the DB are deleted from disk;
+ * static assets (logo, slides, CSS, JS) are never touched.</p>
  */
 @Component
 public class DataInitializer implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
+    /** Only paths starting with this prefix are eligible for deletion. Safety guard. */
+    private static final String UPLOAD_PREFIX = "/uploads/";
+
+    /** Root directory where uploads live on disk (matches WebConfig resource location). */
+    private static final String UPLOAD_ROOT = "uploads";
+
+    @Value("${app.seed.reset:false}")
+    private boolean resetOnStartup;
+
     private final CategoryRepository  categoryRepository;
     private final ProductRepository   productRepository;
     private final UserRepository      userRepository;
     private final OrderRepository     orderRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final CartItemRepository  cartItemRepository;
+    private final PaymentRepository   paymentRepository;
     private final PasswordEncoder     passwordEncoder;
 
     public DataInitializer(CategoryRepository categoryRepository,
                            ProductRepository productRepository,
                            UserRepository userRepository,
                            OrderRepository orderRepository,
+                           OrderItemRepository orderItemRepository,
+                           CartItemRepository cartItemRepository,
+                           PaymentRepository paymentRepository,
                            PasswordEncoder passwordEncoder) {
-        this.categoryRepository = categoryRepository;
-        this.productRepository  = productRepository;
-        this.userRepository     = userRepository;
-        this.orderRepository    = orderRepository;
-        this.passwordEncoder    = passwordEncoder;
+        this.categoryRepository  = categoryRepository;
+        this.productRepository   = productRepository;
+        this.userRepository      = userRepository;
+        this.orderRepository     = orderRepository;
+        this.orderItemRepository = orderItemRepository;
+        this.cartItemRepository  = cartItemRepository;
+        this.paymentRepository   = paymentRepository;
+        this.passwordEncoder     = passwordEncoder;
     }
 
     @Override
     public void run(String... args) throws Exception {
-        if (productRepository.count() > 0) {
+        if (resetOnStartup) {
+            log.warn("app.seed.reset=true — wiping database and re-seeding...");
+            reset();
+        } else if (productRepository.count() > 0) {
             log.info("Database already seeded — skipping.");
             return;
         }
@@ -167,6 +199,91 @@ public class DataInitializer implements CommandLineRunner {
               items(wings, 1, mashedPotato, 1, softDrink, 1));
 
         log.info("Seeding complete: 5 categories, 26 products, 7 users, 28 orders.");
+    }
+
+    // ── Reset (refresh seed) ─────────────────────────────────────────────────
+
+    /**
+     * Collect uploaded file paths from DB, delete the physical files, then
+     * truncate all tables in FK-safe order (children before parents).
+     */
+    private void reset() {
+        // 1. Collect DB-stored file paths BEFORE we delete any records
+        List<String> filesToDelete = new ArrayList<>();
+
+        productRepository.findAll().stream()
+                .map(Product::getImageUrl)
+                .filter(url -> url != null && url.startsWith(UPLOAD_PREFIX))
+                .forEach(filesToDelete::add);
+
+        userRepository.findAll().stream()
+                .map(User::getProfileImageUrl)
+                .filter(url -> url != null && url.startsWith(UPLOAD_PREFIX))
+                .forEach(filesToDelete::add);
+
+        log.info("[Reset] Collected {} uploaded file(s) to delete.", filesToDelete.size());
+
+        // 2. Delete physical files from disk
+        deleteUploadedFiles(filesToDelete);
+
+        // 3. Wipe DB in FK-safe order (leaf tables first)
+        orderItemRepository.deleteAllInBatch();
+        cartItemRepository.deleteAllInBatch();
+        paymentRepository.deleteAllInBatch();
+        orderRepository.deleteAllInBatch();
+        productRepository.deleteAllInBatch();
+        categoryRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
+
+        log.info("[Reset] All tables cleared.");
+    }
+
+    /**
+     * Delete physical files for a list of URL paths stored in the DB.
+     *
+     * <p>Only paths starting with {@value UPLOAD_PREFIX} are processed —
+     * everything else (static assets, CDN URLs, nulls) is silently skipped.
+     * Files are resolved relative to {@value UPLOAD_ROOT} in the working directory.</p>
+     *
+     * @param urlPaths list of URL paths such as {@code /uploads/products/img.jpg}
+     */
+    private void deleteUploadedFiles(List<String> urlPaths) {
+        int deleted = 0;
+        int missing = 0;
+        int skipped = 0;
+
+        for (String urlPath : urlPaths) {
+            // Strip the leading "/" to get a relative filesystem path
+            // e.g. "/uploads/products/img.jpg" → "uploads/products/img.jpg"
+            String relativePath = urlPath.startsWith("/")
+                    ? urlPath.substring(1)
+                    : urlPath;
+
+            // Extra safety: must still be under the uploads root
+            if (!relativePath.startsWith(UPLOAD_ROOT + "/")
+                    && !relativePath.startsWith(UPLOAD_ROOT + "\\")) {
+                log.warn("[Reset] Skipping suspicious path: {}", urlPath);
+                skipped++;
+                continue;
+            }
+
+            File file = new File(relativePath);
+            if (file.exists()) {
+                if (file.delete()) {
+                    log.debug("[Reset] Deleted: {}", relativePath);
+                    deleted++;
+                } else {
+                    log.warn("[Reset] Could not delete: {}", relativePath);
+                    skipped++;
+                }
+            } else {
+                log.debug("[Reset] File not found (already gone?): {}", relativePath);
+                missing++;
+            }
+        }
+
+        log.info("[Reset] File cleanup — deleted: {}, not found: {}, skipped: {}",
+                deleted, missing, skipped);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────

@@ -17,6 +17,9 @@
     <th:block th:if="${extraCss}">
         <link rel="stylesheet" th:href="${extraCss}"/>
     </th:block>
+
+    <!-- WebSocket topic for real-time notifications (admin channel) -->
+    <meta name="ws-topic" content="/topic/admin"/>
 </head>
 </th:block>
 
@@ -128,7 +131,38 @@
                 </ol>
             </nav>
 
-            <!-- Profile dropdown -->
+            <!-- Right side: bell + profile -->
+            <div class="d-flex align-items-center gap-2">
+
+            <!-- ── Notification bell ──────────────────────────────────── -->
+            <div class="dropdown" id="ceNotifDropdown">
+                <button class="btn btn-sm position-relative ce-topbar-bell"
+                        type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false" title="Notifications"
+                        style="background:none;border:none;padding:4px 8px;
+                               color:var(--primary-darker);line-height:1;">
+                    <i class="bi bi-bell fs-5"></i>
+                    <span id="ceNotifBadge"
+                          class="position-absolute top-0 start-100 translate-middle
+                                 badge rounded-pill bg-danger"
+                          style="display:none;font-size:.6rem;min-width:1.2rem;padding:2px 4px;">
+                        0
+                    </span>
+                </button>
+
+                <div class="dropdown-menu dropdown-menu-end p-0 shadow"
+                     style="width:340px;max-height:420px;overflow:hidden;border-radius:.5rem;">
+                    <!-- header -->
+                    <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+                        <span class="fw-bold small">Notifications</span>
+                        <span class="text-muted" style="font-size:.7rem;">Last 30</span>
+                    </div>
+                    <!-- scrollable list -->
+                    <ul id="ceNotifList" class="list-unstyled mb-0"
+                        style="max-height:360px;overflow-y:auto;"></ul>
+                </div>
+            </div>
+            <!-- ── /bell ──────────────────────────────────────────────── -->
             <div class="dropdown">
                 <a class="ce-topbar-user dropdown-toggle d-flex align-items-center gap-2 text-decoration-none"
                    href="#" data-bs-toggle="dropdown" aria-expanded="false">
@@ -181,6 +215,7 @@
                     </li>
                 </ul>
             </div>
+            </div><!-- /.d-flex (bell + profile) -->
         </header>
 
         <!-- Page content -->
@@ -194,8 +229,8 @@
 
 </div><!-- /.ce-admin-shell -->
 
-<!-- ── Toast container ─────────────────────────────────────────────────── -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+<!-- ── Toast container (server flash toasts + real-time notification toasts) -->
+<div id="ceNotifToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
     <div id="toastSuccess" class="toast align-items-center text-bg-success border-0"
          role="alert" aria-live="assertive" aria-atomic="true" th:if="${toastSuccess}">
         <div class="d-flex">
@@ -245,6 +280,11 @@
 <th:block th:if="${extraJs}">
     <script th:src="${extraJs}"></script>
 </th:block>
+
+<!-- SockJS + STOMP for real-time notifications -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<script th:src="@{/js/notifications.js(v=1)}"></script>
 
 </body>
 </th:block>

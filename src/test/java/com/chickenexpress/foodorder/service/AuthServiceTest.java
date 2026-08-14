@@ -30,13 +30,16 @@ class AuthServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private NotificationService notificationService;
+
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(userRepository, passwordEncoder);
+        authService = new AuthService(userRepository, passwordEncoder, notificationService);
     }
 
     // ── loadUserByUsername ───────────────────────────────────────────────────

@@ -24,7 +24,7 @@
 
 .ce-product-img {
     width: 100%;
-    height: 200px;
+    height: 220px;
     object-fit: cover;
     display: block;
 }
@@ -32,8 +32,17 @@
 /* Placeholder when no image is set */
 .ce-product-img-placeholder {
     width: 100%;
-    height: 200px;
+    height: 220px;
     background-color: var(--primary-light);
+}
+
+/* Lock description to 2 lines so all cards stay the same height */
+.ce-product-card .card-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.6em;
 }
 
 /* ── Cart ──────────────────────────────────────────────────────────────── */
