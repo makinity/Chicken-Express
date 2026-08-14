@@ -48,14 +48,27 @@
                     </div>
 
                     <!-- Delivery Address (shown only for delivery) -->
-                    <div class="mb-3" id="deliveryAddressBlock" style="display:none;">
-                        <label for="deliveryAddress" class="form-label fw-medium">
-                            Delivery Address
-                        </label>
-                        <input id="deliveryAddress" name="deliveryAddress" type="text"
-                               class="form-control"
-                               th:value="${user?.address}"
-                               placeholder="Enter full delivery address"/>
+                    <div id="deliveryAddressBlock" style="display:none;">
+                        <div class="mb-3">
+                            <label for="deliveryAddress" class="form-label fw-medium">
+                                Delivery Address
+                            </label>
+                            <input id="deliveryAddress" name="deliveryAddress" type="text"
+                                   class="form-control"
+                                   th:value="${user?.address}"
+                                   placeholder="Enter full delivery address"/>
+                            <div class="invalid-feedback">Delivery address is required for delivery.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contactPhone" class="form-label fw-medium">
+                                Contact Number
+                            </label>
+                            <input id="contactPhone" name="contactPhone" type="tel"
+                                   class="form-control"
+                                   th:value="${user?.phone}"
+                                   placeholder="e.g. 09171234567"/>
+                            <div class="invalid-feedback">Phone number is required for delivery.</div>
+                        </div>
                     </div>
 
                     <!-- Notes -->
@@ -99,12 +112,47 @@
 
 <!-- Show/hide delivery address based on order type selection -->
 <script>
-    document.querySelectorAll('input[name="orderType"]').forEach(radio => {
-        radio.addEventListener('change', () => {
-            const block = document.getElementById('deliveryAddressBlock');
-            block.style.display = radio.value === 'DELIVERY' ? 'block' : 'none';
-        });
+    const radios  = document.querySelectorAll('input[name="orderType"]');
+    const block   = document.getElementById('deliveryAddressBlock');
+    const address = document.getElementById('deliveryAddress');
+    const phone   = document.getElementById('contactPhone');
+    const form    = document.querySelector('form');
+
+    function toggleDelivery() {
+        const isDelivery = document.querySelector('input[name="orderType"]:checked')?.value === 'DELIVERY';
+        block.style.display = isDelivery ? 'block' : 'none';
+        if (address) address.required = isDelivery;
+        if (phone)   phone.required   = isDelivery;
+    }
+
+    radios.forEach(r => r.addEventListener('change', toggleDelivery));
+
+    // Client-side validation before submit
+    form.addEventListener('submit', function (e) {
+        const isDelivery = document.querySelector('input[name="orderType"]:checked')?.value === 'DELIVERY';
+        let hasError = false;
+
+        if (isDelivery) {
+            if (address && address.value.trim() === '') {
+                address.classList.add('is-invalid');
+                if (!hasError) address.focus();
+                hasError = true;
+            }
+            if (phone && phone.value.trim() === '') {
+                phone.classList.add('is-invalid');
+                if (!hasError) phone.focus();
+                hasError = true;
+            }
+        }
+
+        if (hasError) e.preventDefault();
     });
+
+    address?.addEventListener('input', () => address.classList.remove('is-invalid'));
+    phone?.addEventListener('input',   () => phone.classList.remove('is-invalid'));
+
+    // Run on load in case Delivery is pre-selected
+    toggleDelivery();
 </script>
 
 </body>

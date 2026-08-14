@@ -51,8 +51,24 @@ public class CheckoutController {
                              @RequestParam(defaultValue = "TAKEOUT") String orderType,
                              @RequestParam(required = false) String notes,
                              @RequestParam(required = false) String deliveryAddress,
+                             @RequestParam(required = false) String contactPhone,
                              RedirectAttributes redirectAttributes) {
         User user = authService.findByEmail(userDetails.getUsername());
+
+        // Server-side: address and phone required for delivery
+        if ("DELIVERY".equals(orderType)) {
+            if (deliveryAddress == null || deliveryAddress.isBlank()) {
+                redirectAttributes.addFlashAttribute("error",
+                        "A delivery address is required for delivery orders.");
+                return "redirect:/checkout";
+            }
+            if (contactPhone == null || contactPhone.isBlank()) {
+                redirectAttributes.addFlashAttribute("error",
+                        "A contact phone number is required for delivery orders.");
+                return "redirect:/checkout";
+            }
+        }
+
         try {
             Order order = orderService.placeOrder(
                 user.getId(),
