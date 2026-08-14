@@ -50,17 +50,20 @@ public class PaymentService {
 
     /**
      * Initiate a PayMongo hosted checkout session for the given order.
+     *
+     * @param order   the confirmed order
+     * @param baseUrl the base URL of the current request (e.g. https://ngrok... or http://localhost:8080)
      */
-    public String initiateCheckout(Order order) {
-        log.info("[Payment] Initiating checkout for order={} user={} amount={}",
-            order.getOrderNumber(), order.getUser().getEmail(), order.getTotalAmount());
+    public String initiateCheckout(Order order, String baseUrl) {
+        log.info("[Payment] Initiating checkout for order={} user={} amount={} baseUrl={}",
+            order.getOrderNumber(), order.getUser().getEmail(), order.getTotalAmount(), baseUrl);
 
         Payment payment = new Payment(order, order.getTotalAmount());
         paymentRepository.save(payment);
 
         try {
             PayMongoClient.CheckoutSessionResult result =
-                payMongoClient.createCheckoutSession(order, payment);
+                payMongoClient.createCheckoutSession(order, payment, baseUrl);
 
             payment.setPaymongoSessionId(result.sessionId());
             paymentRepository.save(payment);

@@ -5,6 +5,7 @@ import com.chickenexpress.foodorder.entity.User;
 import com.chickenexpress.foodorder.service.AuthService;
 import com.chickenexpress.foodorder.service.OrderService;
 import com.chickenexpress.foodorder.service.PaymentService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -52,6 +53,7 @@ public class CheckoutController {
                              @RequestParam(required = false) String notes,
                              @RequestParam(required = false) String deliveryAddress,
                              @RequestParam(required = false) String contactPhone,
+                             HttpServletRequest request,
                              RedirectAttributes redirectAttributes) {
         User user = authService.findByEmail(userDetails.getUsername());
 
@@ -77,7 +79,22 @@ public class CheckoutController {
                 deliveryAddress
             );
 
-            String checkoutUrl = paymentService.initiateCheckout(order);
+            // Build base URL dynamically from the incoming request
+            // Works for both localhost:8080 and ngrok automatically
+            String scheme   = request.getHeader("X-Forwarded-Proto") != null
+                                ? request.getHeader("X-Forwarded-Proto")
+                                : request.getScheme();
+            String host     = request.getHeader("X-Forwarded-Host") != null
+                                ? request.getHeader("X-Forwarded-Host")
+                                : request.getServerName();
+            int    port     = request.getServerPort();
+            String baseUrl  = scheme + "://" + host +
+                              (("http".equals(scheme) && port == 80) ||
+                               ("https".equals(scheme) && port == 443) ||
+                               request.getHeader("X-Forwarded-Host") != null
+                                ? "" : ":" + port);
+
+            String checkoutUrl = paymentService.initiateCheckout(order, baseUrl);
             return "redirect:" + checkoutUrl;
 
         } catch (IllegalStateException e) {

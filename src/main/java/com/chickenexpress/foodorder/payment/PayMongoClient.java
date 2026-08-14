@@ -43,12 +43,6 @@ public class PayMongoClient {
     @Value("${paymongo.base-url}")
     private String baseUrl;
 
-    @Value("${paymongo.success-url}")
-    private String successUrl;
-
-    @Value("${paymongo.cancel-url}")
-    private String cancelUrl;
-
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -65,18 +59,17 @@ public class PayMongoClient {
      * @return a record containing the session ID and checkout URL
      * @throws PaymentException if the API call fails or returns a non-2xx response
      */
-    public CheckoutSessionResult createCheckoutSession(Order order, Payment payment) {
+    public CheckoutSessionResult createCheckoutSession(Order order, Payment payment, String appBaseUrl) {
         try {
-            log.info("[PayMongo] Creating checkout session for order={} amount={}",
-                order.getOrderNumber(), order.getTotalAmount());
+            log.info("[PayMongo] Creating checkout session for order={} amount={} successUrl={}",
+                order.getOrderNumber(), order.getTotalAmount(), appBaseUrl + "/checkout/success");
 
-            // Warn early if secret key looks empty
             if (secretKey == null || secretKey.isBlank()) {
                 log.error("[PayMongo] PAYMONGO_SECRET_KEY is not set! Check your environment variables.");
                 throw new PaymentException("PayMongo secret key is not configured. Set the PAYMONGO_SECRET_KEY environment variable.");
             }
 
-            String requestBody = buildCheckoutSessionBody(order);
+            String requestBody = buildCheckoutSessionBody(order, appBaseUrl);
             log.debug("[PayMongo] Request body: {}", requestBody);
 
             String authHeader = "Basic " + Base64.getEncoder()
@@ -118,7 +111,7 @@ public class PayMongoClient {
 
     // ── Request Body Builder ─────────────────────────────────────────────────
 
-    private String buildCheckoutSessionBody(Order order) throws IOException {
+    private String buildCheckoutSessionBody(Order order, String appBaseUrl) throws IOException {
         List<Map<String, Object>> lineItems = order.getOrderItems().stream()
             .map(this::toLineItem)
             .toList();
@@ -128,8 +121,8 @@ public class PayMongoClient {
                               "email", order.getUser().getEmail()),
             "line_items", lineItems,
             "payment_method_types", List.of("card", "gcash", "grab_pay", "paymaya"),
-            "success_url", successUrl + "?orderId=" + order.getId(),
-            "cancel_url", cancelUrl,
+            "success_url", appBaseUrl + "/checkout/success?orderId=" + order.getId(),
+            "cancel_url",  appBaseUrl + "/checkout/cancel",
             "description", "ChickenExpress Order " + order.getOrderNumber(),
             "reference_number", order.getOrderNumber(),
             "send_email_receipt", false,
