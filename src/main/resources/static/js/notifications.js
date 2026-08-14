@@ -32,8 +32,10 @@
 
     /* ── DOM refs (set in init) ───────────────────────────────────────────── */
 
-    let bellBadge    = null;   // <span> badge on the bell
-    let dropdownList = null;   // <ul> inside the bell dropdown
+    // Supports both desktop (#ceNotifBadge / #ceNotifList) and
+    // mobile (#ceNotifBadgeMobile / #ceNotifListMobile) elements simultaneously
+    let bellBadges    = [];   // all badge spans
+    let dropdownLists = [];   // all dropdown list uls
 
     /* ── Colour map by type ─────────────────────────────────────────────── */
 
@@ -110,13 +112,14 @@
     /* ── Badge ───────────────────────────────────────────────────────────── */
 
     function updateBadge() {
-        if (!bellBadge) return;
-        if (unreadCount > 0) {
-            bellBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-            bellBadge.style.display = '';
-        } else {
-            bellBadge.style.display = 'none';
-        }
+        bellBadges.forEach(function (badge) {
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                badge.style.display = '';
+            } else {
+                badge.style.display = 'none';
+            }
+        });
     }
 
     function clearBadge() {
@@ -128,34 +131,36 @@
     /* ── Dropdown list ───────────────────────────────────────────────────── */
 
     function renderDropdown() {
-        if (!dropdownList) return;
+        dropdownLists.forEach(function (dropdownList) {
+            if (!dropdownList) return;
 
-        if (notifications.length === 0) {
-            dropdownList.innerHTML =
-                '<li class="px-3 py-4 text-center text-muted small">' +
-                '<i class="bi bi-bell-slash d-block fs-3 mb-1 opacity-50"></i>' +
-                'No notifications yet</li>';
-            return;
-        }
+            if (notifications.length === 0) {
+                dropdownList.innerHTML =
+                    '<li class="px-3 py-4 text-center text-muted small">' +
+                    '<i class="bi bi-bell-slash d-block fs-3 mb-1 opacity-50"></i>' +
+                    'No notifications yet</li>';
+                return;
+            }
 
-        dropdownList.innerHTML = notifications.map(function (n, idx) {
-            const icon      = n.icon  || 'bi-bell';
-            const linkOpen  = n.link  ? '<a href="' + n.link + '" class="text-decoration-none text-reset d-block">' : '<div>';
-            const linkClose = n.link  ? '</a>' : '</div>';
+            dropdownList.innerHTML = notifications.map(function (n) {
+                const icon      = n.icon  || 'bi-bell';
+                const linkOpen  = n.link  ? '<a href="' + n.link + '" class="text-decoration-none text-reset d-block">' : '<div>';
+                const linkClose = n.link  ? '</a>' : '</div>';
 
-            return '<li class="border-bottom' + (n.unread ? ' ce-notif-unread' : '') + '">' +
-                linkOpen +
-                '<div class="d-flex align-items-start gap-2 px-3 py-2">' +
-                '<i class="bi ' + icon + ' mt-1 flex-shrink-0 ' +
-                    (n.unread ? 'ce-color-primary' : 'text-muted') + '"></i>' +
-                '<div class="flex-grow-1 overflow-hidden">' +
-                '<div class="fw-semibold small lh-sm text-truncate">' + escHtml(n.title) + '</div>' +
-                '<div class="text-muted small mt-1" style="white-space:normal;line-height:1.3;">' +
-                    escHtml(n.message) + '</div>' +
-                '<div class="text-muted mt-1" style="font-size:.68rem;">' + escHtml(n.at || '') + '</div>' +
-                '</div></div>' +
-                linkClose + '</li>';
-        }).join('');
+                return '<li class="border-bottom' + (n.unread ? ' ce-notif-unread' : '') + '">' +
+                    linkOpen +
+                    '<div class="d-flex align-items-start gap-2 px-3 py-2">' +
+                    '<i class="bi ' + icon + ' mt-1 flex-shrink-0 ' +
+                        (n.unread ? 'ce-color-primary' : 'text-muted') + '"></i>' +
+                    '<div class="flex-grow-1 overflow-hidden">' +
+                    '<div class="fw-semibold small lh-sm text-truncate">' + escHtml(n.title) + '</div>' +
+                    '<div class="text-muted small mt-1" style="white-space:normal;line-height:1.3;">' +
+                        escHtml(n.message) + '</div>' +
+                    '<div class="text-muted mt-1" style="font-size:.68rem;">' + escHtml(n.at || '') + '</div>' +
+                    '</div></div>' +
+                    linkClose + '</li>';
+            }).join('');
+        });
     }
 
     /* ── Toast ───────────────────────────────────────────────────────────── */
@@ -216,19 +221,28 @@
     /* ── Init ────────────────────────────────────────────────────────────── */
 
     document.addEventListener('DOMContentLoaded', function () {
-        bellBadge    = document.getElementById('ceNotifBadge');
-        dropdownList = document.getElementById('ceNotifList');
+        // Collect both desktop and mobile elements
+        ['ceNotifBadge', 'ceNotifBadgeMobile'].forEach(function (id) {
+            const el = document.getElementById(id);
+            if (el) bellBadges.push(el);
+        });
+        ['ceNotifList', 'ceNotifListMobile'].forEach(function (id) {
+            const el = document.getElementById(id);
+            if (el) dropdownLists.push(el);
+        });
 
-        // Clear badge + render dropdown when bell is opened
-        const bellDropdown = document.getElementById('ceNotifDropdown');
-        if (bellDropdown) {
-            bellDropdown.addEventListener('show.bs.dropdown', function () {
-                renderDropdown();
-            });
-            bellDropdown.addEventListener('shown.bs.dropdown', function () {
-                clearBadge();
-            });
-        }
+        // Clear badge + render dropdown when any bell is opened
+        ['ceNotifDropdown', 'ceNotifDropdownMobile'].forEach(function (id) {
+            const bellDropdown = document.getElementById(id);
+            if (bellDropdown) {
+                bellDropdown.addEventListener('show.bs.dropdown', function () {
+                    renderDropdown();
+                });
+                bellDropdown.addEventListener('shown.bs.dropdown', function () {
+                    clearBadge();
+                });
+            }
+        });
 
         // Render initial empty state
         renderDropdown();

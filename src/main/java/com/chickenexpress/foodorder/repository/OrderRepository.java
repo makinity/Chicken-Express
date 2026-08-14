@@ -37,17 +37,18 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     /** Count of orders placed between two timestamps — used for dashboard stats. */
     long countByCreatedAtBetween(LocalDateTime from, LocalDateTime to);
 
-    /** Total revenue (sum of totalAmount) for COMPLETED orders — all time. */
-    @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.status = 'COMPLETED'")
+    /** Total revenue (sum of totalAmount) for paid orders — all time.
+     *  Counts PREPARING, READY, and COMPLETED (i.e. payment confirmed, not cancelled/pending). */
+    @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.status IN ('PREPARING', 'READY', 'COMPLETED')")
     java.math.BigDecimal sumTotalRevenue();
 
-    /** Total revenue for COMPLETED orders within a date range. */
-    @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.status = 'COMPLETED' AND o.createdAt BETWEEN :from AND :to")
+    /** Total revenue for paid orders within a date range. */
+    @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.status IN ('PREPARING', 'READY', 'COMPLETED') AND o.createdAt BETWEEN :from AND :to")
     java.math.BigDecimal sumRevenueBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
     /** Daily revenue for the last N days — returns [date_string, revenue] pairs. */
     @Query(value = "SELECT DATE(o.created_at) as day, COALESCE(SUM(o.total_amount), 0) as rev " +
-                   "FROM orders o WHERE o.status = 'COMPLETED' AND o.created_at >= :from " +
+                   "FROM orders o WHERE o.status IN ('PREPARING', 'READY', 'COMPLETED') AND o.created_at >= :from " +
                    "GROUP BY DATE(o.created_at) ORDER BY day ASC",
            nativeQuery = true)
     List<Object[]> dailyRevenueSince(@Param("from") LocalDateTime from);

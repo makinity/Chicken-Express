@@ -74,3 +74,18 @@
     font-size: 5rem;
     color: #198754; /* Bootstrap success green */
 }
+
+
+/* ── Order History Cards ────────────────────────────────────────────────── */
+
+.ce-order-card {
+    color: inherit;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border-left: 3px solid var(--primary) !important;
+}
+
+.ce-order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,.10) !important;
+    color: inherit;
+}

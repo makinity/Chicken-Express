@@ -1,6 +1,7 @@
 package com.chickenexpress.foodorder.config;
 
 import com.chickenexpress.foodorder.entity.User;
+import com.chickenexpress.foodorder.repository.CartItemRepository;
 import com.chickenexpress.foodorder.service.AuthService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,15 +15,19 @@ import org.springframework.web.bind.annotation.ModelAttribute;
  *
  * Exposes:
  *   - {@code currentUser}            — the full {@link User} entity (or null if not logged in)
- *   - {@code currentProfileImageUrl} — kept for backward-compat with any existing template references
+ *   - {@code currentUserId}          — the user's DB id (for WebSocket topic)
+ *   - {@code currentProfileImageUrl} — kept for backward-compat
+ *   - {@code cartItemCount}          — number of distinct items in the user's cart (for badge)
  */
 @ControllerAdvice
 public class GlobalModelAdvice {
 
     private final AuthService authService;
+    private final CartItemRepository cartItemRepository;
 
-    public GlobalModelAdvice(AuthService authService) {
+    public GlobalModelAdvice(AuthService authService, CartItemRepository cartItemRepository) {
         this.authService = authService;
+        this.cartItemRepository = cartItemRepository;
     }
 
     @ModelAttribute("currentUser")
@@ -43,6 +48,18 @@ public class GlobalModelAdvice {
     public Long currentUserId() {
         User user = currentUser();
         return user != null ? user.getId() : null;
+    }
+
+    /** Number of distinct items in the cart — drives the cart badge in the navbar. */
+    @ModelAttribute("cartItemCount")
+    public long cartItemCount() {
+        User user = currentUser();
+        if (user == null) return 0;
+        try {
+            return cartItemRepository.countByUserId(user.getId());
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     /** Kept for backward compatibility — delegates to currentUser. */

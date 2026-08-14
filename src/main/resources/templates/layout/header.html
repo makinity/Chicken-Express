@@ -33,40 +33,88 @@
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <!--  NAVIGATION BAR                                                         -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<nav class="navbar navbar-expand-lg sticky-top ce-navbar" th:fragment="navbar">
+<th:block th:fragment="navbar">
+<nav class="navbar navbar-expand-lg sticky-top ce-navbar">
     <div class="container">
 
-        <!-- Brand -->
-        <a class="navbar-brand ce-navbar-brand" th:href="@{/}">
-            <img th:src="@{/images/logo.png(v=2)}" alt="ChickenExpress" class="ce-navbar-logo"/>
-        </a>
+        <!-- ── MOBILE: burger (left) + cart/notif (right) ────────────────── -->
 
-        <!-- Toggler for mobile -->
-        <button class="navbar-toggler border-0" type="button"
-                data-bs-toggle="collapse" data-bs-target="#navbarMain"
-                aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+        <!-- Burger — left side on mobile, hidden on desktop -->
+        <button class="navbar-toggler border-0 d-lg-none me-2 order-1"
+                type="button"
+                sec:authorize="!isAuthenticated()"
+                data-bs-toggle="collapse" data-bs-target="#navbarGuest"
+                aria-controls="navbarGuest" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <!-- Nav links -->
-        <div class="collapse navbar-collapse pb-2 pb-lg-0" id="navbarMain">
-            <ul class="navbar-nav me-auto gap-1">
+        <!-- Burger for authenticated — opens offcanvas sidebar -->
+        <button class="btn border-0 d-lg-none me-2 order-1 ce-nav-link px-2"
+                type="button"
+                sec:authorize="isAuthenticated()"
+                data-bs-toggle="offcanvas" data-bs-target="#mobileNavSidebar"
+                aria-controls="mobileNavSidebar" aria-label="Open menu"
+                style="background:none;">
+            <i class="bi bi-list fs-4"></i>
+        </button>
 
-                <!-- Menu -->
+        <!-- Brand — hidden on mobile (d-none d-lg-flex), visible on desktop -->
+        <a class="navbar-brand ce-navbar-brand order-2 d-none d-lg-flex" th:href="@{/}">
+            <img th:src="@{/images/logo.png(v=2)}" alt="ChickenExpress" class="ce-navbar-logo"/>
+        </a>
+
+        <!-- Mobile right-side icons: cart + notif (authenticated only) — always visible -->
+        <div class="d-flex align-items-center gap-1 ms-auto d-lg-none order-3"
+             sec:authorize="isAuthenticated()">
+            <!-- Cart -->
+            <a class="nav-link ce-nav-link position-relative px-2" th:href="@{/cart}">
+                <i class="bi bi-cart3 fs-5"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                      th:if="${cartItemCount != null and cartItemCount > 0}"
+                      th:text="${cartItemCount}">0</span>
+            </a>
+            <!-- Notif bell -->
+            <div class="dropdown" id="ceNotifDropdownMobile">
+                <button class="btn nav-link ce-nav-link position-relative px-2"
+                        type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false" title="Notifications"
+                        style="background:none;border:none;">
+                    <i class="bi bi-bell fs-5"></i>
+                    <span id="ceNotifBadgeMobile"
+                          class="position-absolute top-0 start-100 translate-middle
+                                 badge rounded-pill bg-danger"
+                          style="display:none;font-size:.6rem;min-width:1.2rem;padding:2px 4px;">0</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-0 shadow"
+                     style="width:300px;max-height:420px;overflow:hidden;border-radius:.5rem;">
+                    <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+                        <span class="fw-bold small">Notifications</span>
+                        <span class="text-muted" style="font-size:.7rem;">Last 30</span>
+                    </div>
+                    <ul id="ceNotifListMobile" class="list-unstyled mb-0"
+                        style="max-height:360px;overflow-y:auto;"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── DESKTOP nav (hidden on mobile) ────────────────────────────── -->
+        <div class="collapse navbar-collapse pb-2 pb-lg-0 order-4" id="navbarGuest">
+            <ul class="navbar-nav me-auto gap-1">
+                <li class="nav-item">
+                    <a class="nav-link ce-nav-link px-3" th:href="@{/}">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link ce-nav-link px-3" th:href="@{/menu}">
                         <i class="bi bi-grid-3x3-gap"></i> Menu
                     </a>
                 </li>
-
-                <!-- About -->
                 <li class="nav-item">
                     <a class="nav-link ce-nav-link px-3" th:href="@{/#about}">
                         <i class="bi bi-info-circle"></i> About
                     </a>
                 </li>
-
-                <!-- Admin link (ROLE_ADMIN only) -->
                 <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                     <a class="nav-link ce-nav-link px-3" th:href="@{/admin/dashboard}">
                         <i class="bi bi-speedometer2"></i> Admin
@@ -74,11 +122,10 @@
                 </li>
             </ul>
 
-            <!-- Right-side nav -->
             <ul class="navbar-nav ms-auto align-items-lg-center gap-2 mt-2 mt-lg-0">
 
-                <!-- Cart (authenticated users) -->
-                <li class="nav-item" sec:authorize="isAuthenticated()">
+                <!-- Cart (desktop, authenticated) -->
+                <li class="nav-item d-none d-lg-block" sec:authorize="isAuthenticated()">
                     <a class="nav-link ce-nav-link ce-nav-cart position-relative px-2" th:href="@{/cart}">
                         <i class="bi bi-cart3 fs-5"></i>
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
@@ -87,15 +134,8 @@
                     </a>
                 </li>
 
-                <!-- Orders (authenticated users) -->
-                <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link ce-nav-link px-3" th:href="@{/orders}">
-                        <i class="bi bi-receipt"></i> Orders
-                    </a>
-                </li>
-
-                <!-- Notification bell (authenticated users) -->
-                <li class="nav-item dropdown" sec:authorize="isAuthenticated()" id="ceNotifDropdown">
+                <!-- Notification bell (desktop, authenticated) -->
+                <li class="nav-item dropdown d-none d-lg-block" sec:authorize="isAuthenticated()" id="ceNotifDropdown">
                     <button class="btn nav-link ce-nav-link position-relative px-2"
                             type="button" data-bs-toggle="dropdown"
                             aria-expanded="false" title="Notifications"
@@ -104,9 +144,7 @@
                         <span id="ceNotifBadge"
                               class="position-absolute top-0 start-100 translate-middle
                                      badge rounded-pill bg-danger"
-                              style="display:none;font-size:.6rem;min-width:1.2rem;padding:2px 4px;">
-                            0
-                        </span>
+                              style="display:none;font-size:.6rem;min-width:1.2rem;padding:2px 4px;">0</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-0 shadow"
                          style="width:320px;max-height:420px;overflow:hidden;border-radius:.5rem;">
@@ -119,26 +157,21 @@
                     </div>
                 </li>
 
-                <!-- User dropdown (authenticated users) -->
-                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                <!-- User dropdown (desktop, authenticated) -->
+                <li class="nav-item dropdown d-none d-lg-block" sec:authorize="isAuthenticated()">
                     <a class="nav-link ce-nav-link ce-nav-user px-2 dropdown-toggle d-flex align-items-center gap-2"
                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <!-- Profile photo -->
                         <img th:if="${currentProfileImageUrl != null}"
-                             th:src="${currentProfileImageUrl}"
-                             alt="Avatar"
+                             th:src="${currentProfileImageUrl}" alt="Avatar"
                              style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.6);"/>
-                        <!-- Fallback icon -->
                         <i th:unless="${currentProfileImageUrl != null}"
                            class="bi bi-person-circle fs-5"></i>
                         <span sec:authentication="name">User</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end ce-dropdown shadow-sm border-0 mt-2">
                         <li class="px-3 py-2 d-flex align-items-center gap-2">
-                            <!-- Mini avatar in dropdown header -->
                             <img th:if="${currentProfileImageUrl != null}"
-                                 th:src="${currentProfileImageUrl}"
-                                 alt="Avatar"
+                                 th:src="${currentProfileImageUrl}" alt="Avatar"
                                  style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;"/>
                             <div th:unless="${currentProfileImageUrl != null}"
                                  style="width:36px;height:36px;border-radius:50%;background:var(--ce-primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -163,8 +196,7 @@
                         <li><hr class="dropdown-divider my-1"/></li>
                         <li>
                             <form th:action="@{/logout}" method="post">
-                                <input type="hidden" th:name="${_csrf.parameterName}"
-                                       th:value="${_csrf.token}"/>
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                                 <button class="dropdown-item text-danger" type="submit">
                                     <i class="bi bi-box-arrow-right me-2"></i>Logout
                                 </button>
@@ -175,16 +207,10 @@
 
                 <!-- Login / Sign Up (guests) -->
                 <li class="nav-item" sec:authorize="!isAuthenticated()">
-                    <a class="btn ce-navbar-login-btn rounded-pill px-3 py-1 fw-medium"
-                       th:href="@{/login}">
-                        Login
-                    </a>
+                    <a class="btn ce-navbar-login-btn rounded-pill px-3 py-1 fw-medium" th:href="@{/login}">Login</a>
                 </li>
                 <li class="nav-item" sec:authorize="!isAuthenticated()">
-                    <a class="btn ce-navbar-signup-btn rounded-pill px-3 py-1 fw-bold"
-                       th:href="@{/register}">
-                        Sign Up
-                    </a>
+                    <a class="btn ce-navbar-signup-btn rounded-pill px-3 py-1 fw-bold" th:href="@{/register}">Sign Up</a>
                 </li>
             </ul>
         </div>
@@ -192,16 +218,74 @@
     </div>
 </nav>
 
+<!-- ── Mobile Offcanvas Sidebar (authenticated customers only) ────────────── -->
+<div class="offcanvas offcanvas-start ce-mobile-sidebar"
+     tabindex="-1" id="mobileNavSidebar"
+     sec:authorize="isAuthenticated()"
+     xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <div class="offcanvas-header border-bottom">
+        <div class="d-flex align-items-center gap-2">
+            <!-- Avatar -->
+            <img th:if="${currentProfileImageUrl != null}"
+                 th:src="${currentProfileImageUrl}" alt="Avatar"
+                 style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;"/>
+            <div th:unless="${currentProfileImageUrl != null}"
+                 style="width:38px;height:38px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="bi bi-person text-white fs-5"></i>
+            </div>
+            <div>
+                <div class="fw-bold small lh-1" sec:authentication="name">User</div>
+                <div class="text-muted" style="font-size:.7rem;" th:text="${currentUser?.email}">email</div>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <ul class="list-unstyled mb-0">
+            <li>
+                <a class="ce-sidebar-link" th:href="@{/}">
+                    <i class="bi bi-house"></i> Home
+                </a>
+            </li>
+            <li>
+                <a class="ce-sidebar-link" th:href="@{/menu}">
+                    <i class="bi bi-grid-3x3-gap"></i> Menu
+                </a>
+            </li>
+            <li>
+                <a class="ce-sidebar-link" th:href="@{/#about}">
+                    <i class="bi bi-info-circle"></i> About
+                </a>
+            </li>
+            <li><hr class="my-1 mx-3"/></li>
+            <li>
+                <a class="ce-sidebar-link" th:href="@{/profile}">
+                    <i class="bi bi-person"></i> My Profile
+                </a>
+            </li>
+            <li>
+                <a class="ce-sidebar-link" th:href="@{/orders}">
+                    <i class="bi bi-receipt"></i> My Orders
+                </a>
+            </li>
+            <li><hr class="my-1 mx-3"/></li>
+            <li>
+                <form th:action="@{/logout}" method="post" class="m-0">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="ce-sidebar-link text-danger border-0 bg-transparent w-100 text-start">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+</div>
+
+</th:block>
+
 <!-- ── Real-time notification toast container (customer) ─────────────────── -->
 <div id="ceNotifToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"
      style="z-index: 9999;" sec:authorize="isAuthenticated()"></div>
-
-<!-- SockJS + STOMP + notifications (only injected when a topic meta tag is present) -->
-<th:block th:if="${currentUserId != null}">
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-    <script th:src="@{/js/notifications.js(v=1)}"></script>
-</th:block>
 
 </body>
 </html>
